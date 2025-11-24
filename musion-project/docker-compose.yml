@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: musion-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: musiondb
+      MYSQL_USER: musionuser
+      MYSQL_PASSWORD: musionpassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

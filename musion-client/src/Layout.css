@@ -1,0 +1,330 @@
+/* src/Layout.css (VERSÃO 100% LIMPA) */
+
+.layout-container {
+  min-height: 100vh;
+    background-color: transparent; 
+    
+}
+
+.navbar {
+  position: fixed; /* Mantém fixo */
+  
+  /* --- ADICIONE ISSO --- */
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Garante que fique na frente das fotos e textos */
+  /* --------------------- */
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem; /* Ajustei levemente para não ficar gigante */
+  background-color: #18191D; /* Ou rgba(24, 25, 29, 0.95) para transparência */
+  border-bottom: 1px solid #282828;
+  color: white;
+  width: 100%;
+  box-sizing: border-box;
+  height: 80px; /* Definir uma altura fixa ajuda a calcular o conteúdo depois */
+}
+
+.navbar-logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  color: #DEE0E8;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: white;
+}
+
+.logout-button {
+  background: transparent;
+  color: #DEE0E831;
+  padding: 0.5rem 1rem;
+  border: 2px solid #DEE0E831;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.nav-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #b3b3b3;
+  padding: 0.5rem;
+  margin: 0 0.5rem; /* Corrigido de "0 0 rem" */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.nav-icon-button:hover {
+  color: white;
+  background-color: #3e3e3e;
+}
+
+.nav-icon-button svg {
+  display: block;
+}
+
+/* --- A PARTE IMPORTANTE QUE CENTRALIZA --- */
+.content {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto; /* <-- AQUI ESTÁ A MÁGICA */
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+/* --- Estilos da Barra de Busca e Pop-over --- */
+
+.navbar-search {
+  position: relative;
+  flex-grow: 1;
+  max-width: 500px;
+  margin: 0 2rem;
+}
+
+.search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  height: 45px; /* Altura fixa */
+  line-height: 45px; /* IMPORTANTE: Centraliza o texto verticalmente */
+  padding: 0 45px 0 20px; /* Espaço para o texto não bater no ícone */
+  
+  border-radius: 50px;
+  border: 2px solid #DEE0E8;
+  background-color: #18191D;
+  
+  /* FORÇA A COR BRANCA */
+  color: #ffffff !important; 
+  font-size: 1rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  background-color: #3e3e3e;
+}
+
+.search-input::placeholder {
+  color: #DEE0E831; /* Cor do placeholder 'Buscar...' */
+  opacity: 1;
+}
+
+.search-button {
+  position: absolute;
+  right: 15px; /* Encostado na direita */
+  top: 50%;
+  transform: translateY(-50%); /* Centralizado verticalmente */
+  background: transparent;
+  border: none;
+  color: #DEE0E8; /* Cor Cinza Claro */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.search-button:hover {
+  color: white;
+}
+
+.search-results-popover {
+  position: absolute;
+  top: 115%; /* Um pouco mais abaixo para não grudar */
+  left: 0;
+  width: 100%;
+  background-color: #18191D; /* Fundo um pouco mais escuro que o input */
+  border-radius: 8px;
+  border: 1.5px solid #DEE0E831;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  max-height: 400px;
+  overflow-y: auto;
+  max-width: 500px;   /* ⬅⬅⬅ ADICIONE ISSO */
+  max-height: 350px;  /* ⬅⬅⬅ ADICIONE ISSO */
+  
+  /* FORÇA O TEXTO DE DENTRO A SER BRANCO */
+  color: white; 
+  text-align: left; /* Garante alinhamento à esquerda */
+}
+
+.search-loading, .no-results {
+  padding: 15px;
+  text-align: center;
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.search-container {
+  position: relative; /* <--- ISSO É O MAIS IMPORTANTE! Prende o popover aqui */
+  width: 100%;
+  max-width: 500px; /* Define um tamanho para a barra */
+  margin: 0 auto;   /* Centraliza a barra na navbar */
+}
+
+.album-result-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  gap: 1rem;
+}
+
+.album-result-item:hover {
+  background-color: #3e3e3e;
+}
+
+.album-result-item:not(:last-child) {
+  border-bottom: 1px solid #3e3e3e;
+}
+
+.album-result-cover {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.album-result-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.album-result-name {
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-result-artist {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- ESTILOS DA BUSCA UNIFICADA --- */
+
+.results-section {
+  border-bottom: 1px solid #3e3e3e;
+  padding-bottom: 0.5rem;
+}
+
+.results-section:last-child {
+  border-bottom: none;
+}
+
+.results-category-title {
+  padding: 0.8rem 1rem 0.4rem 1rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #888;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* Item genérico de resultado */
+.result-item {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.result-item:hover {
+  background-color: #3e3e3e;
+}
+
+.result-info {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+  overflow: hidden;
+}
+
+.result-name {
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-subtext {
+  font-size: 0.85rem;
+  color: #b3b3b3;
+}
+
+/* Específico para Usuários */
+.result-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%; /* Redondo */
+  object-fit: cover;
+}
+
+/* Específico para Álbuns */
+.result-cover {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px; /* Quadrado com ponta levemente arredondada */
+  object-fit: cover;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 1000px; /* <--- O LIMITE QUE FALTAVA */
+  margin: 0 auto;    /* Centraliza o bloco no meio da tela */
+  padding: 100px 2rem 2rem 2rem;
+  box-sizing: border-box;
+}
+
+.new-review-btn {
+  background: transparent;
+  border: none;
+  color: #DEE0E8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.new-review-btn:hover {
+  color: white; /* Fica verde ao passar o mouse */
+  transform: scale(1.1); /* Aumenta um pouquinho */
+}

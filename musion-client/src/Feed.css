@@ -1,0 +1,148 @@
+/* --- CONTAINER PRINCIPAL DO FEED --- */
+.feed-container {
+  width: 100%;
+  max-width: 800px; /* Largura igual a do perfil */
+  margin: 0 auto;
+  padding-top: 2rem;
+  color: #fff;
+  font-family: sans-serif; /* Garante a fonte padrão */
+}
+
+.feed-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  padding-left: 1rem;
+  border-left: 4px solid #1DB954; /* Detalhe verde estilo Spotify */
+}
+
+/* --- O CARD DA REVIEW (HORIZONTAL) --- */
+.feed-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2.5rem;
+  background-color: transparent; /* Fundo transparente para ficar limpo */
+}
+
+/* --- CABEÇALHO DO USUÁRIO (Quem postou) --- */
+.feed-user-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.feed-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #333;
+}
+
+.feed-username {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.feed-username:hover {
+  text-decoration: underline;
+}
+
+.feed-action {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.feed-date {
+  color: #666;
+  font-size: 0.8rem;
+  margin-left: auto; /* Empurra a data para a direita */
+}
+
+/* --- CORPO DA REVIEW (Capa na esquerda, Texto na direita) --- */
+.feed-review-card {
+  display: flex;
+  background-color: #181818; /* Fundo escuro do card */
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #282828;
+  transition: transform 0.2s;
+}
+
+.feed-review-card:hover {
+  border-color: #444;
+  transform: translateX(4px);
+}
+
+/* LADO ESQUERDO: Capa + Nota */
+.feed-review-left {
+  position: relative; /* Para posicionar a nota */
+  width: 140px;       /* Tamanho fixo da capa */
+  flex-shrink: 0;     /* Não deixa encolher */
+}
+
+.feed-cover {
+  width: 100%;
+  height: 140px;      /* Quadrada */
+  object-fit: cover;
+  display: block;
+}
+
+/* Quadrado da Nota (Sobreposto na capa ou logo abaixo) */
+.feed-rating-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #fff;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+  border-bottom-right-radius: 6px;
+}
+
+/* LADO DIREITO: Informações */
+.feed-review-content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.feed-album-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.feed-album-artist {
+  font-size: 0.9rem;
+  color: #b3b3b3;
+  margin-bottom: 12px;
+}
+
+.feed-review-text {
+  font-size: 0.9rem;
+  color: #ddd;
+  font-style: italic;
+  line-height: 1.4;
+  background-color: #222;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 3px solid #444;
+}
+
+/* CORES DAS NOTAS */
+.rating-green { background-color: #1DB954; color: #000; }
+.rating-yellow { background-color: #F59B23; color: #000; }
+.rating-red { background-color: #E91429; color: #fff; }

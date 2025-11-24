@@ -1,0 +1,1 @@
+-- Migration reapplied manually. Prisma should treat this as already synced.

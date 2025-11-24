@@ -1,0 +1,106 @@
+// src/users/users.controller.ts
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  Request,
+  Patch,
+  Body,
+  UsePipes,
+  ValidationPipe,
+  ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  Post,
+  Delete,
+  Query
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UsersService } from './users.service';
+import { AuthGuard } from '@nestjs/passport';
+import { UpdateUserDto } from '../dto/update-user.dto';
+import { CloudinaryService } from '../cloudinary.service'; // <-- IMPORTE O SERVIÇO
+
+@Controller('users')
+export class UsersController {
+  // Injete o CloudinaryService no construtor
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService, 
+  ) {}
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('search')
+  async search(@Query('q') query: string) {
+    return this.usersService.searchUsers(query);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  async getMyProfile(@Request() req) {
+    return this.usersService.findById(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('me')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async updateMyProfile(@Request() req, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(req.user.id, dto);
+  }
+
+  // --- ROTA DE UPLOAD ATUALIZADA ---
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('me/avatar')
+  @UseInterceptors(FileInterceptor('file')) // <-- REMOVEMOS o diskStorage. O padrão é memória.
+  async uploadAvatar(@Request() req, @UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo enviado');
+    }
+
+    // 1. Envia para o Cloudinary
+    const result = await this.cloudinaryService.uploadImage(file).catch((err: any) => { // <-- Corrigido!
+    console.error('🚨 ERRO DETALHADO DO CLOUDINARY:', err);
+    throw new BadRequestException('Erro ao enviar imagem para o Cloudinary');
+});
+
+    // 2. O Cloudinary retorna a URL segura (https)
+    const avatarUrl = result.secure_url;
+
+    // 3. Salva a URL no banco de dados
+    return this.usersService.updateAvatar(req.user.id, avatarUrl);
+  }
+  // --- FIM ---
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findById(id);
+  }
+
+  // Rota para ver o perfil de QUALQUER pessoa
+  // Ex: GET http://localhost:3000/users/profile/5
+  @UseGuards(AuthGuard('jwt'))
+  @Get('profile/:id')
+  async getProfile(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.usersService.findProfile(id, req.user.id);
+  }
+
+  // Rota para SEGUIR
+  // Ex: POST http://localhost:3000/users/5/follow
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/follow')
+  async follow(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.usersService.followUser(req.user.id, id);
+  }
+
+  // Rota para DEIXAR DE SEGUIR
+  // Ex: DELETE http://localhost:3000/users/5/follow
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id/follow')
+  async unfollow(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.usersService.unfollowUser(req.user.id, id);
+  }
+  
+}

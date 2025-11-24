@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// --- MODELOS ---
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  username    String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+  displayName String?
+  avatarUrl   String?
+  bio         String?
+
+  reviews   Review[]
+  following Follow[] @relation("Following")
+  followers Follow[] @relation("Followers")
+  
+  likes     Like[]
+}
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  text        String?  @db.Text
+  rating      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime? @updatedAt  // (opcional, mas recomendado)
+
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+
+  albumId     String     
+  spotifyId   String?    
+  albumName   String
+  albumCover  String
+  albumArtist String
+  releaseYear Int?
+
+  likes       Like[]
+}
+
+model Follow {
+  id Int @id @default(autoincrement())
+
+  follower   User @relation("Followers", fields: [followerId], references: [id])
+  followerId Int
+
+  following   User @relation("Following", fields: [followingId], references: [id])
+  followingId Int
+
+  @@unique([followerId, followingId])
+}
+
+// --- NOVO MODELO DE LIKE ---
+model Like {
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  review   Review @relation(fields: [reviewId], references: [id])
+  reviewId Int
+
+  createdAt DateTime @default(now())
+
+  // Chave composta: Um usuário só pode dar like 1 vez na mesma review
+  @@id([userId, reviewId])
+}
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  sessionId String?
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+

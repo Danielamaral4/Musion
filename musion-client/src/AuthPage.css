@@ -1,0 +1,105 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #18191D;
+  font-family: Arial, sans-serif;
+}
+
+.auth-box {
+  background-color: transparent;
+  padding: 2.5rem;
+  border-radius: 8px;
+  border: 2px solid #dee0e831;
+  box-shadow: 0 12px 24px #DEE0E831;
+  width: 400px;
+  color: #dee0e8;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 20px;
+  border: 2px solid #dee0e831;
+  background-color: transparent;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+/* INPUT WRAPPER PARA USERNAME COM ICONE */
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper .input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.input-wrapper input {
+  padding-left: 35px; /* espaço suficiente para o @ */
+}
+
+/* MESMO ESTILO PARA BOTAO */
+.auth-button {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 20px;
+  background-color: #dee0e8;
+  color: #18191D;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-button:hover {
+  background-color: #ffffff;
+}
+
+.toggle-button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #dee0e831;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 1.5rem;
+}
+
+.message {
+  text-align: center;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.error {
+  color: #e57373;
+}
+
+.success {
+  color: #81c784;
+}

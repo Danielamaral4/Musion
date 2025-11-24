@@ -1,0 +1,183 @@
+/* =========================================
+   FUNDO E CONTAINER
+   ========================================= */
+.review-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+
+.review-modal-content {
+  background-color: #18191D; width: 100%; max-width: 500px;
+  border-radius: 12px;
+  overflow: hidden; position: relative; display: flex; flex-direction: column;
+}
+
+/* =========================================
+   BOTÕES (Voltar e Fechar)
+   ========================================= */
+.review-modal-back-btn, .review-modal-close {
+  position: absolute; top: 10px; width: 36px; height: 36px;
+  background: transparent; border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; cursor: pointer; z-index: 50; transition: all 0.2s; padding: 0;
+}
+.review-modal-back-btn { left: 15px; }
+.review-modal-close { right: 15px; }
+
+.review-modal-back-btn:hover, .review-modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.2); transform: scale(1.1);
+}
+.review-modal-back-btn svg, .review-modal-close svg { width: 20px; height: 20px; }
+
+/* =========================================
+   HEADERS E BUSCA
+   ========================================= */
+.review-modal-step-1 h3, .review-modal-step-2 h3 {
+  padding: 1rem; margin: 0; text-align: center; font-size: 1rem;
+  color: #7E818E; border-bottom: 1px solid #282828; font-weight: 600;
+}
+
+.search-bar-modal { padding: 1rem; border-bottom: 1px solid #282828; }
+.search-bar-modal input {
+  width: 100%; padding: 12px; border-radius: 6px; border: none;
+  background-color: #2A2A2A; color: white; font-size: 1rem; outline: none; box-sizing: border-box;
+}
+
+.search-results-modal { flex: 1; overflow-y: auto; padding: 0.5rem; min-height: 300px; }
+.album-result-item {
+  display: flex; align-items: center; padding: 8px; cursor: pointer;
+  border-radius: 6px; margin-bottom: 4px;
+}
+.album-result-item:hover { background-color: #282828; }
+.album-result-cover { 
+  width: 48px; height: 48px; border-radius: 4px; margin-right: 12px; object-fit: cover; background-color: #333;
+}
+.album-result-info { display: flex; flex-direction: column; overflow: hidden; }
+.album-result-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.album-result-artist { color: #888; font-size: 0.85rem; }
+
+/* =========================================
+   FORMULÁRIO (Área do Álbum)
+   ========================================= */
+.review-form-all{
+  background-color: #18191D; 
+    
+    background-image: conic-gradient(
+        /* Gradiente Esquerdo: Claro -> Escuro (0% a 30%) */
+        from 90deg at 76% 21%, /* Mova o centro para o canto */
+        #DEE0E810 0%,
+        #18191D 20%
+    ),
+    conic-gradient(
+        /* Gradiente Direito: Escuro -> Claro (70% a 100%) */
+        from -90deg at 24% 21%, /* Mova o centro para o canto */
+        #18191D 80%,
+        #DEE0E810 100%
+    );
+background-attachment: fixed;
+    /* Divide o background em duas áreas iguais */
+    background-size: 50.025% 100%, 50.0% 100%;
+    
+    /* Posiciona cada gradiente na sua metade */
+    background-position: left top, right top;
+    
+    /* Garante que o fundo não se repita */
+    background-repeat: no-repeat;
+
+}
+
+.review-form-header {
+  display: flex; padding: 1.5rem;
+  /* background: linear-gradient(to bottom, #dee0e831 0%, #18191D 100%); */
+  align-items: flex-end; /* Alinha a capa e o texto pela base */
+  gap: 1.5rem;
+}
+
+.review-form-cover {
+  width: 200px; height: 200px; border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5); flex-shrink: 0; object-fit: cover; background-color: #333;
+}
+
+.review-form-info {
+  display: flex; 
+  flex-direction: column;
+  justify-content: flex-end; /* Garante que o conteúdo comece de baixo */
+  align-items: flex-start;   /* Alinha tudo à esquerda */
+  text-align: left;          /* Reforça alinhamento à esquerda */
+  flex: 1;
+  min-width: 0; /* Importante para o texto quebrar linha e não estourar */
+}
+
+.review-form-info h2 {
+  margin: 0 0 4px 0;
+  font-weight: 700; 
+  color: white;
+  text-align: left; /* Força esquerda */
+  word-wrap: break-word; /* Quebra palavras longas se necessário */
+  line-height: 1.1;
+}
+
+.review-form-info .artist-name { 
+  margin: 0; color:  #55565C; font-size: 1rem; font-weight: 500;
+  text-align: left;
+}
+
+.review-form-meta {
+  margin-top: 8px; font-size: 0.85rem; color: #55565C; font-weight: 400;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* =========================================
+   CORPO E INPUTS
+   ========================================= */
+.review-form-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+
+.review-form-textarea {
+  width: 100%; min-height: 120px; background-color: transparent;
+  border: 1.5px solid #dee0e831; border-radius: 20px; color: white; font-size: 1.05rem; resize: none;
+  outline: none; font-family: inherit; line-height: 1.5; box-sizing: border-box; padding: 8px;
+}
+.review-char-counter { text-align: right; font-size: 0.75rem; color: #55565C; margin-top: -10px; }
+
+.review-form-rating { display: flex; flex-direction: column; }
+.rating-wrapper { display: flex; align-items: center; gap: 1.2rem; }
+.slider-container { flex: 1; display: flex; align-items: center; }
+
+/* Slider */
+.rating-slider {
+  -webkit-appearance: none; width: 100%; height: 55px; background: transparent; border-radius: 50px; 
+  border: 1.5px solid #dee0e831; outline: none; cursor: pointer; padding-left: 5px; padding-right: 5px;
+}
+.rating-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 45px; height: 45px; border-radius: 50%; background: #DEE0E8; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 1px solid #ccc; transition: transform 0.1s;
+}
+.rating-slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+/* --- CAIXA DA NOTA --- */
+.rating-value-box {
+  width: 55px; 
+  height: 55px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  border-radius: 3px;
+  
+  /* AQUI ESTÃO AS MUDANÇAS QUE VOCÊ PEDIU */
+  font-weight: 700;  /* Normal (não bold) */
+  font-size: 1.9rem; /* Aumentado */
+  
+  color: white; 
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.review-form-submit {
+  background-color: #DEE0E8; color: #18191D; border: none; padding: 0.9rem; border-radius: 50px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+}
+.review-form-submit:hover { background-color: white; transform: translateY(-2px); }
+.review-form-submit:disabled { background-color: #333; color: #666; cursor: not-allowed; }
+
+.error-message { color: #ff4444; font-size: 0.9rem; text-align: center; margin-top: -10px; }
+.loading, .no-results { text-align: center; color: #666; padding: 2rem; font-size: 0.9rem; }

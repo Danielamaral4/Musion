@@ -1,10 +1,327 @@
-/* AlbumPage.css */
-.album-container {
+/* ================================
+   REVIEW CARD - ALBUM PAGE
+   ================================ */
+.review-card {
+  position: relative;
+  padding-bottom: 50px;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  border-radius: 8px;
   padding: 1rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  box-shadow: 0 10px 24px #DEE0E820;
+  border: 2px solid #dee0e831;
 }
-.album-cover {
-  width: 300px;
-  height: 300px;
+
+/* HEADER DO AUTOR */
+.review-author-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review-author-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.review-author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   object-fit: cover;
-  border-radius: 10px;
+}
+
+.review-author-info {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.review-author-name {
+  color: #DEE0E8;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.review-author-username {
+  color: #DEE0E831;
+  font-size: 0.9rem;
+}
+
+/* CORPO DA REVIEW */
+.review-card-body {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  min-height: 90px; /* garante espaço mínimo para o like */
+  position: relative;
+}
+
+.review-details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.review-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.review-rating-square {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Cores da nota */
+.rating-bg-red { background-color: #F20505; color: #FFF; }
+.rating-bg-yellow { background-color: #F2CB05; color: #FFF; }
+.rating-bg-green { background-color: #37a603; color: #FFF; }
+
+/* TEXTO */
+.review-text {
+  font-size: 1rem;
+  color: #e8e1de;
+  line-height: 1.5;
+  text-align: left !important;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* MENU DE OPÇÕES */
+.menu-wrapper { position: relative; }
+
+.options-button {
+  background: transparent;
+  border: none;
+  color: #DEE0E831;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.options-button:hover { color: white; }
+
+.review-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #18191D;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  overflow: hidden;
+  z-index: 100;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #DEE0E831;
+}
+
+.review-dropdown-menu button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.review-dropdown-menu button:hover { background-color: #3e3e3e; }
+.review-dropdown-menu button.delete-btn:hover { background-color: #3e1111; color: #ff6b6b; }
+
+/* LIKE */
+.like-container {
+  position: absolute;
+  margin-left: auto;
+  bottom: 15px;
+  right: 15px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  z-index: 10;
+}
+
+.like-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.like-button:hover { transform: scale(1.15); }
+.like-button:active { transform: scale(0.9); }
+
+.like-icon {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: #DEE0E831;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 0.3s ease;
+}
+
+.like-button.liked .like-icon {
+  fill: #DEE0E8;
+  stroke: #DEE0E8;
+}
+
+.like-count {
+  color: #55565C;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-width: 12px;
+  line-height: 1;
+}
+
+.like-button.liked + .like-count { color: #DEE0E8; }
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .review-card-body { flex-direction: column; align-items: center; }
+  .review-header { flex-direction: column; align-items: center; gap: 0.5rem; }
+}
+
+/* ================================
+   ALBUM PAGE HEADER
+   ================================ */
+.album-header-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  position: relative;
+}
+
+.album-cover-img {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.album-header-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.album-title {
+  font-size: clamp(1.5rem, 5vw, 3rem); /* ajusta dinamicamente conforme o tamanho do título */
+  font-weight: bold;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.album-artists {
+  font-size: 1.1rem;
+  color: #ccc;
+  margin: 5px 0 10px 0;
+}
+
+.album-meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #aaa;
+  align-items: center;
+}
+
+.album-meta-info span {
+  font-size: 0.9rem;
+}
+
+.spotify-icon {
+  color: #1DB954;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.album-average-rating-square {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 3px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
+}
+
+/* cores das notas */
+.rating-bg-red { background-color: #F20505; color: #FFF; }
+.rating-bg-yellow { background-color: #F2CB05; color: #FFF; }
+.rating-bg-green { background-color: #37a603; color: #FFF; }
+
+/* ================================
+   TRACKLIST
+   ================================ */
+.tracklist-section {
+  margin: 1.5rem;
+}
+
+.tracklist-section h3 {
+  margin-bottom: 0.8rem;
+  color: #ccc;
+}
+
+.tracklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.track-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #2a2a2a;
+  font-size: 0.95rem;
+  color: #eee;
+}
+
+.track-item:last-child { border-bottom: none; }
+
+.track-duration {
+  color: #888;
+  font-size: 0.85rem;
 }

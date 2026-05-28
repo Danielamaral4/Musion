@@ -5,7 +5,7 @@ import './Dashboard.css';
 import ChatWidget from './ChatWidget';
 
 const normalizeAlbum = (a) => ({
-  id: a.id || a.albumId,
+  id: a.id || a.albumId || a._id,
   name: a.name || a.albumName || 'Álbum Desconhecido',
   artistName: a.artistName || a.albumArtist || a.artists?.[0]?.name || 'Artista Desconhecido',
   imageUrl: a.imageUrl || a.albumCover || a.images?.[0]?.url || '',
@@ -46,23 +46,29 @@ const AlbumGrid = ({ albums }) => {
 
   return (
     <div className="album-grid">
-      {albums.map((album, i) => {
+      {albums.map((album) => {
         const n = normalizeAlbum(album);
         const ratingVal = getSafeRating(n.rating);
 
         return (
-          <div className="dash-card">
+          <Link 
+            to={`/album/${n.id}`} 
+            className="dash-card" 
+            key={n.id}
+          >
             <img src={n.imageUrl || '/placeholder.png'} alt={n.name} />
+
             <div className="dash-info-row">
               <div className="dash-text-col">
                 <div className="dash-title">{n.name}</div>
                 <div className="dash-artist">{n.artistName}</div>
               </div>
+
               <div className={`dash-rating-square ${getDynamicColorClass(ratingVal)}`}>
                 {ratingVal || '-'}
               </div>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>
@@ -130,19 +136,19 @@ function Dashboard() {
 
       {recommendedByLast?.length > 0 && (
         <section>
-          <div className="section-title">Porque você curtiu {lastAlbumName}</div>
+          <div className="section-title">Porque você curtiu <span className='recommended-Name'>{lastAlbumName}</span></div>
           <AlbumGrid albums={recommendedByLast} />
         </section>
       )}
       {recommendedBySecond?.length > 0 && (
         <section>
-          <div className="section-title">Porque você também curtiu {secondAlbumName}</div>
+          <div className="section-title">Porque você também curtiu <span className='recommended-Name'>{secondAlbumName}</span></div>
           <AlbumGrid albums={recommendedBySecond} />
         </section>
       )}
       {recommendedByThird?.length > 0 && (
         <section>
-          <div className="section-title">Porque você gostou de {thirdAlbumName}</div>
+          <div className="section-title">Porque você gostou de <span className='recommended-Name'>{thirdAlbumName}</span></div>
           <AlbumGrid albums={recommendedByThird} />
         </section>
       )}

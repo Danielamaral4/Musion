@@ -27,12 +27,12 @@
   height: 80px; /* Definir uma altura fixa ajuda a calcular o conteúdo depois */
 }
 
-.navbar-logo {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #ffffff;
-  text-decoration: none;
+.logo {
+  width: 150px;    /* ou o tamanho que preferir */
+  height: auto;    /* mantém proporção */
+  object-fit: contain;
 }
+
 
 .navbar-links {
   display: flex;

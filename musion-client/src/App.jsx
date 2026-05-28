@@ -4,10 +4,11 @@ import AuthPage from './AuthPage';
 import Dashboard from './Dashboard';
 import ProfilePage from './ProfilePage';
 import Feed from './Feed';
-import AlbumPage from './AlbumPage'; // <-- Importar a página do álbum
+import AlbumPage from './AlbumPage';
 import Layout from './Layout';
 import './index.css';
 
+// Layout protegido (Requer Login)
 const ProtectedLayout = () => {
   const token = localStorage.getItem('musion_token'); 
   if (!token) {
@@ -16,6 +17,7 @@ const ProtectedLayout = () => {
   return <Layout />;
 };
 
+// Layout de visitante (Só para quem NÃO está logado)
 const GuestLayout = () => {
   const token = localStorage.getItem('musion_token');
   if (token) {
@@ -28,30 +30,34 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rotas de visitante */}
+        {/* --- PRIORIDADE MÁXIMA: ROTAS DE VISITANTE --- */}
+        {/* Devem vir PRIMEIRO para que /login não seja confundido com um ID */}
         <Route element={<GuestLayout />}>
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/register" element={<AuthPage />} />
         </Route>
 
-        {/* Dashboard sempre acessível */}
-        <Route path="/" element={<Layout isGuest={true} />}>
-          <Route index element={<Dashboard />} />
-        </Route>
-
-        {/* Rotas protegidas */}
+        {/* --- PRIORIDADE 2: ROTAS PROTEGIDAS --- */}
         <Route element={<ProtectedLayout />}>
+          <Route path="/" element={<Dashboard />} />
           <Route path="/feed" element={<Feed />} />
-          <Route path="/profile" element={<ProfilePage />} />      
-          <Route path="/profile/:id" element={<ProfilePage />} />  
-          <Route path="/album/:id" element={<AlbumPage />} />
+          
+          {/* Rotas Específicas */}
+          <Route path="/profile" element={<ProfilePage />} />
+          
+          {/* Rotas Dinâmicas (Devem vir depois das específicas) */}
+          <Route path="/profile/:id" element={<ProfilePage />} />
+          
+          {/* Rota do Álbum (Use /album/ para evitar conflito na raiz) */}
+          <Route path="/album/:albumId" element={<AlbumPage />} />
         </Route>
 
+        {/* --- ROTA CORINGA --- */}
+        {/* Qualquer url desconhecida vai para a home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-
   );
-  
 }
 
 export default App;

@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// --- MODELOS ---
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  username    String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+  displayName String?
+  avatarUrl   String?
+  bio         String?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+
+  reviews   Review[]
+  following Follow[] @relation("Following")
+  followers Follow[] @relation("Followers")
+  likes     Like[]
+  comments  Comment[] // NOVO: Comentários feitos pelo usuário
+  iotEvents IotEvent[]
+  blocksMade UserBlock[] @relation("BlocksMade")
+  blocksReceived UserBlock[] @relation("BlocksReceived")
+  reportsMade Report[] @relation("ReportsMade")
+  reportsReceived Report[] @relation("ReportsAgainstUser")
+
+  notificationsReceived Notification[] @relation("UserNotifications")
+  notificationsSent     Notification[] @relation("SenderNotifications")
+}
+
+model Review {
+  id          Int       @id @default(autoincrement())
+  text        String?   @db.Text
+  rating      Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  albumId     String     
+  spotifyId   String?    
+  albumName   String
+  albumCover  String
+  albumArtist String
+  releaseYear Int?
+
+  likes         Like[]
+  comments      Comment[]      // NOVO: Lista de comentários desta review
+  notifications Notification[] // CORREÇÃO: Necessário para mapear a relação com as notificações
+}
+
+model Follow {
+  id Int @id @default(autoincrement())
+
+  follower   User @relation("Followers", fields: [followerId], references: [id])
+  followerId Int
+
+  following   User @relation("Following", fields: [followingId], references: [id])
+  followingId Int
+
+  @@unique([followerId, followingId])
+}
+
+model Like {
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  review   Review @relation(fields: [reviewId], references: [id])
+  reviewId Int
+
+  createdAt DateTime @default(now())
+
+  @@id([userId, reviewId])
+}
+
+// --- NOVO MODELO DE COMENTÁRIO ---
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reviewId Int
+
+  notifications Notification[] // Vincula o comentário às notificações geradas por ele
+}
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  sessionId String?
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+
+  userId    Int      // Quem recebe a notificação
+  senderId  Int      // Quem gerou a ação
+  type      String   // "LIKE", "FOLLOW" ou "COMMENT"
+
+  reviewId  Int?     // Opcional para curtidas e comentários
+  commentId Int?     // Opcional: vincula direto ao comentário gerador
+  albumName String?  // Nome do álbum para facilitar no front
+
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relações
+  user   User @relation("UserNotifications", fields: [userId], references: [id])
+  sender User @relation("SenderNotifications", fields: [senderId], references: [id])
+
+  // Se a review ou comentário sumirem, a notificação some junto automaticamente (Cascade)
+  review  Review?  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+}
+
+model IotEvent {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+
+  albumId    String
+  albumName  String
+  albumCover String?  @db.Text
+  source     String
+
+  hexColor   String
+  red        Int
+  green      Int
+  blue       Int
+  isFallback Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model UserBlock {
+  id        Int      @id @default(autoincrement())
+
+  blocker   User     @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockerId Int
+
+  blocked   User     @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+  blockedId Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model Report {
+  id           Int      @id @default(autoincrement())
+
+  reporter     User     @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporterId   Int
+
+  targetType   String
+  targetId     Int
+
+  targetUser   User?    @relation("ReportsAgainstUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetUserId Int?
+
+  reason       String
+  details      String?  @db.Text
+  status       String   @default("PENDING")
+
+  createdAt    DateTime @default(now())
+  reviewedAt   DateTime?
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@index([targetUserId])
+}
+
+model DataDeletionRequest {
+  id          Int       @id @default(autoincrement())
+  email       String
+  username    String?
+  reason      String?   @db.Text
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([email])
+  @@index([status, createdAt])
+}

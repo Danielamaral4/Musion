@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import api from './api';
 import ReviewModal from './ReviewModal';
 import './Layout.css';
+import Logo from './assets/Musion0.png';
 
 function Layout() {
   const navigate = useNavigate();
@@ -73,10 +74,12 @@ function Layout() {
     navigate(`/profile/${userId}`);
   };
 
-  const handleSearchAlbumClick = (album) => {
-    setSearchResults({ albums: [], users: [] });
-    setIsReviewModalOpen(true);
-  };
+const handleSearchAlbumClick = (album) => {
+  setSearchResults({ albums: [], users: [] });
+  setSearchQuery('');
+  // Navega para a página do álbum
+  navigate(`/album/${album.id}`);
+};
 
   const handleLogout = () => {
     localStorage.removeItem('musion_token');
@@ -94,7 +97,7 @@ function Layout() {
   return (
     <div className="layout-container">
       <nav className="navbar">
-        <Link to="/" className="navbar-logo">Musion</Link>
+        <Link to="/" className="navbar-logo"><img src={Logo} alt="Musion Logo" className="logo" /></Link>
         
         <div className="search-container" ref={searchContainerRef}>
           <input 
@@ -119,7 +122,7 @@ function Layout() {
                 <div className="results-section">
                   <h4 className="results-category-title">USUÁRIOS</h4>
                   {searchResults.users.map(user => (
-                    <div key={user.id} className="result-item user-item" onClick={() => handleUserClick(user.id)}>
+                    <div key={user.id} className="result-item user-item" onClick={() => handleSearchAlbumClick(album)}>
                       <img src={user.avatarUrl || 'https://i.stack.imgur.com/l60Hf.png'} alt="Avatar" className="result-avatar" />
                       <div className="result-info">
                         <span className="result-name">{user.displayName || user.username}</span>

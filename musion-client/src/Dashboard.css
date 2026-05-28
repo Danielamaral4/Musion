@@ -20,6 +20,8 @@
 }
 
 /* Títulos das Seções */
+
+
 .section-title {
   font-size: 1.4rem;
   font-weight: 600;
@@ -29,6 +31,13 @@
   color: #DEE0E8;
   text-align: left;
   align-self: flex-start;
+}
+
+.recommended-Name {
+  color: white;
+  background-clip: text; /* padrão moderno */
+  font-weight: 700; /* exemplo: negrito */
+  font-size: 1.1em;  /* exemplo: aumentar tamanho */
 }
 
 /* --- GRID DE ALBUNS --- */
@@ -124,7 +133,7 @@
 }
 
 .rating-green { background-color: #37A603; color: white; }
-.rating-yellow { background-color: #F2CB05; color: #18191D; }
+.rating-yellow { background-color: #F2CB05; color: white; }
 .rating-red { background-color: #F20505; color: white; }
 .rating-gray { background-color: #333; color: #777; }
 

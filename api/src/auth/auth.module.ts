@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from './local.strategy';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { LocalStrategy } from './local.strategy';
     
     // Isso resolve a dependência circular (Auth -> User, User -> Auth)
     forwardRef(() => UsersModule), 
+    PrismaModule,
     
     PassportModule,
     JwtModule.registerAsync({ 

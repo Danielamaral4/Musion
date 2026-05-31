@@ -90,7 +90,7 @@ export const privacyPage = () => pageShell(
   <ul>
     <li>Dados de conta: nome de exibição, username, e-mail, senha criptografada, foto e bio.</li>
     <li>Conteúdo criado pelo usuário: reviews, notas, comentários, curtidas e seguidores.</li>
-    <li>Dados de uso: álbuns acessados, recomendações exibidas e eventos do Musion Glow.</li>
+    <li>Dados de uso: álbuns acessados, recomendações exibidas e interações gerais no aplicativo.</li>
     <li>Dados técnicos: informações básicas de requisições para segurança, estabilidade e diagnóstico.</li>
   </ul>
 
@@ -100,7 +100,6 @@ export const privacyPage = () => pageShell(
     <li>Exibir feed, perfis, reviews, comentários e notificações.</li>
     <li>Gerar recomendações musicais e insights agregados.</li>
     <li>Permitir recursos de moderação, denúncia e bloqueio.</li>
-    <li>Simular integrações IoT, como o LED virtual Musion Glow.</li>
   </ul>
 
   <h2>Compartilhamento</h2>
@@ -169,7 +168,7 @@ export const deleteAccountPage = () => pageShell(
   </form>
 
   <h2>O que será excluído</h2>
-  <p>Ao confirmar a titularidade da conta, poderemos excluir perfil, reviews, comentários, curtidas, seguidores, dados do Musion Glow e demais dados associados, salvo quando a retenção for necessária por obrigação legal, segurança ou prevenção de abuso.</p>`
+  <p>Ao confirmar a titularidade da conta, poderemos excluir perfil, reviews, comentários, curtidas, seguidores e demais dados associados, salvo quando a retenção for necessária por obrigação legal, segurança ou prevenção de abuso.</p>`
 );
 
 export const deletionSuccessPage = () => pageShell(

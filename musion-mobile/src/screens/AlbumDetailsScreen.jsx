@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -12,15 +13,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useReviewShare } from '../components/ReviewShareCard';
 import api from '../services/api';
-import { sendAlbumToVirtualLed } from '../services/iotGlow';
 import { confirmBlockUser, openReportPrompt } from '../services/moderation';
 
 export function AlbumDetailsScreen({ route, navigation }) {
   const { id } = route.params;
+  const { shareReviewCard, ShareReviewHost } = useReviewShare();
 
   const [album, setAlbum] = useState(null);
   const [tracks, setTracks] = useState([]);
@@ -29,6 +32,9 @@ export function AlbumDetailsScreen({ route, navigation }) {
   const [myReview, setMyReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [playingTrackId, setPlayingTrackId] = useState(null);
+  const [loadingTrackId, setLoadingTrackId] = useState(null);
+  const soundRef = useRef(null);
 
   const msToMinutes = (ms) => {
     if (!ms) return '0:00';
@@ -80,13 +86,6 @@ export function AlbumDetailsScreen({ route, navigation }) {
 
         setAlbum(albumData);
 
-        sendAlbumToVirtualLed({
-          albumId: albumData.id || id,
-          albumName: albumData.name,
-          albumCover: albumData.images?.[0]?.url,
-          source: 'AlbumDetails',
-        });
-
         if (albumData.tracks?.items) {
           setTracks(albumData.tracks.items);
         }
@@ -114,6 +113,14 @@ export function AlbumDetailsScreen({ route, navigation }) {
 
     loadData();
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+      }
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -267,6 +274,10 @@ export function AlbumDetailsScreen({ route, navigation }) {
     Alert.alert('Opções do Review', 'O que você deseja fazer?', [
       { text: 'Cancelar', style: 'cancel' },
       {
+        text: 'Compartilhar como Story',
+        onPress: () => shareReviewCard(getReviewData(review)),
+      },
+      {
         text: 'Denunciar Review',
         onPress: () =>
           openReportPrompt({
@@ -292,6 +303,87 @@ export function AlbumDetailsScreen({ route, navigation }) {
           }),
       },
     ]);
+  };
+
+  const openSpotifyUrl = async (url) => {
+    if (!url) {
+      Alert.alert('Spotify', 'Link do Spotify indisponível para este item.');
+      return;
+    }
+
+    try {
+      await Linking.openURL(url);
+    } catch (err) {
+      Alert.alert('Spotify', 'Não foi possível abrir o Spotify agora.');
+    }
+  };
+
+  const stopCurrentPreview = async () => {
+    if (!soundRef.current) return;
+
+    try {
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+    } catch (err) {
+      console.log('Erro ao parar preview:', err?.message);
+    } finally {
+      soundRef.current = null;
+      setPlayingTrackId(null);
+    }
+  };
+
+  const getTrackPreviewUrl = async (track) => {
+    if (track.preview_url) {
+      return track.preview_url;
+    }
+
+    const response = await api.get('/spotify/track-preview', {
+      params: {
+        track: track.name,
+        artist: track.artists?.[0]?.name || artistNames,
+      },
+    });
+
+    return response.data?.previewUrl || null;
+  };
+
+  const handleTrackAction = async (track) => {
+    const trackId = track.id || track.uri || track.name;
+
+    if (playingTrackId === trackId) {
+      await stopCurrentPreview();
+      return;
+    }
+
+    setLoadingTrackId(trackId);
+
+    try {
+      await stopCurrentPreview();
+      const previewUrl = await getTrackPreviewUrl(track);
+
+      if (!previewUrl) {
+        openSpotifyUrl(track.external_urls?.spotify);
+        return;
+      }
+
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: previewUrl },
+        { shouldPlay: true }
+      );
+
+      soundRef.current = sound;
+      setPlayingTrackId(trackId);
+
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status?.didJustFinish) {
+          stopCurrentPreview();
+        }
+      });
+    } catch (err) {
+      Alert.alert('Prévia indisponível', 'Não foi possível tocar a prévia dessa faixa.');
+    } finally {
+      setLoadingTrackId(null);
+    }
   };
 
   return (
@@ -341,12 +433,22 @@ export function AlbumDetailsScreen({ route, navigation }) {
               <Text style={styles.metaText}>{msToMinutes(totalDurationMs)}</Text>
             </View>
 
-            <TouchableOpacity style={styles.reviewButton} onPress={openReviewForm} activeOpacity={0.82}>
+            <View style={styles.albumActions}>
+              <TouchableOpacity style={styles.reviewButton} onPress={openReviewForm} activeOpacity={0.82}>
               <Ionicons name="pencil" size={18} color="#18191D" />
               <Text style={styles.reviewButtonText}>
                 {myReview ? 'Editar Avaliação' : 'Avaliar Álbum'}
               </Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.spotifyButton}
+                onPress={() => openSpotifyUrl(album.external_urls?.spotify)}
+                activeOpacity={0.82}
+              >
+                <FontAwesome name="spotify" size={24} color="#1DB954" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -354,10 +456,38 @@ export function AlbumDetailsScreen({ route, navigation }) {
           <Text style={styles.sectionTitle}>Faixas</Text>
           {tracks.map((track, idx) => (
             <View key={track.id || `${track.name}-${idx}`} style={styles.trackItem}>
-              <Text style={styles.trackName} numberOfLines={1}>
-                {idx + 1}. {track.name}
-              </Text>
-              <Text style={styles.trackDuration}>{msToMinutes(track.duration_ms)}</Text>
+              <View style={styles.trackTextBlock}>
+                <Text style={styles.trackName} numberOfLines={1}>
+                  {idx + 1}. {track.name}
+                </Text>
+              </View>
+
+              <View style={styles.trackRight}>
+                <Text style={styles.trackDuration}>{msToMinutes(track.duration_ms)}</Text>
+
+                {(track.preview_url || track.external_urls?.spotify || track.name) && (
+                  <TouchableOpacity
+                    style={styles.trackActionButton}
+                    onPress={() => handleTrackAction(track)}
+                    activeOpacity={0.78}
+                    disabled={loadingTrackId === (track.id || track.uri || track.name)}
+                  >
+                    {loadingTrackId === (track.id || track.uri || track.name) ? (
+                      <ActivityIndicator size="small" color="#DEE0E8" />
+                    ) : (
+                      <Ionicons
+                        name={
+                          playingTrackId === (track.id || track.uri || track.name)
+                            ? 'pause'
+                            : 'play'
+                        }
+                        size={16}
+                        color="#DEE0E8"
+                      />
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           ))}
         </View>
@@ -460,6 +590,13 @@ export function AlbumDetailsScreen({ route, navigation }) {
                         <Text style={[styles.actionText, styles.commentActionText]}>{commentCount}</Text>
                       </TouchableOpacity>
 
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => shareReviewCard(getReviewData(review))}
+                      >
+                        <Ionicons name="share-social-outline" size={20} color="#55565C" />
+                      </TouchableOpacity>
+
                       <TouchableOpacity style={styles.actionButton} onPress={() => toggleLike(review)}>
                         <Ionicons
                           name={review.isLiked ? 'heart' : 'heart-outline'}
@@ -478,6 +615,7 @@ export function AlbumDetailsScreen({ route, navigation }) {
           )}
         </View>
       </ScrollView>
+      <ShareReviewHost />
     </SafeAreaView>
   );
 }
@@ -592,12 +730,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginHorizontal: 6,
   },
-  reviewButton: {
+  albumActions: {
+    width: '80%',
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+  },
+  reviewButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#DEE0E8',
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 18,
     borderRadius: 25,
     gap: 8,
   },
@@ -605,6 +751,16 @@ const styles = StyleSheet.create({
     color: '#18191D',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  spotifyButton: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(29, 185, 84, 0.45)',
+    backgroundColor: 'rgba(29, 185, 84, 0.08)',
   },
   sectionContainer: {
     paddingHorizontal: 16,
@@ -621,19 +777,37 @@ const styles = StyleSheet.create({
   trackItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#2a2a2a',
   },
+  trackTextBlock: {
+    flex: 1,
+    paddingRight: 10,
+  },
   trackName: {
     color: '#eee',
     fontSize: 15,
-    flex: 1,
-    paddingRight: 10,
+  },
+  trackRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   trackDuration: {
     color: '#888',
     fontSize: 14,
+  },
+  trackActionButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(222, 224, 232, 0.14)',
+    backgroundColor: 'rgba(222, 224, 232, 0.06)',
   },
   emptyText: {
     color: 'rgba(222, 224, 232, 0.5)',

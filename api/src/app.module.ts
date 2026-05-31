@@ -11,9 +11,9 @@ import { AlbumController } from './album/album.controller';
 import { AlbumModule } from './album/album.module';
 import { ChatModule } from './chat/chat.module';
 import { CommentsModule } from './comments/comments.module';
-import { IotModule } from './iot/iot.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { LegalModule } from './legal/legal.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -30,11 +30,11 @@ import { LegalModule } from './legal/legal.module';
     AlbumModule,
     ChatModule,
     CommentsModule,
-    IotModule,
     ModerationModule,
     LegalModule,
   ],
   
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

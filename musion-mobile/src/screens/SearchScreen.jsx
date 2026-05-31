@@ -1,73 +1,110 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  Platform, 
-  StatusBar, 
-  Image, 
-  FlatList, 
-  ActivityIndicator
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../services/api';
 
-const NO_COVER = "https://via.placeholder.com/150/333333/FFFFFF?text=No+Cover";
+const NO_COVER = 'https://via.placeholder.com/150/333333/FFFFFF?text=No+Cover';
 
 export function SearchScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('albums'); // 'albums' ou 'users'
-  
+  const [activeTab, setActiveTab] = useState('albums');
   const [albumResults, setAlbumResults] = useState([]);
   const [userResults, setUserResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // --- LÓGICA DE BUSCA ---
   useEffect(() => {
-    if (searchQuery.trim() === '') { 
-      setAlbumResults([]); 
+    if (searchQuery.trim() === '') {
+      setAlbumResults([]);
       setUserResults([]);
-      return; 
+      setIsSearching(false);
+      return;
     }
 
     setIsSearching(true);
+
     const timer = setTimeout(() => {
       if (activeTab === 'albums') {
-        // Rota correta para buscar os álbuns
-        api.get('/spotify/search', { params: { q: searchQuery } })
-          .then(res => setAlbumResults(res.data))
-          .catch(err => console.error("Erro na busca de álbuns:", err))
+        api
+          .get('/spotify/search', { params: { q: searchQuery } })
+          .then((res) => setAlbumResults(res.data))
+          .catch((err) => console.error('Erro na busca de albuns:', err))
           .finally(() => setIsSearching(false));
       } else {
-        // ⚠️ ATENÇÃO: Ajuste esta rota para a sua rota real de busca de usuários no backend
-        api.get('/users/search', { params: { q: searchQuery } })
-          .then(res => setUserResults(res.data))
-          .catch(err => console.error("Erro na busca de usuários:", err))
+        api
+          .get('/users/search', { params: { q: searchQuery } })
+          .then((res) => setUserResults(res.data))
+          .catch((err) => console.error('Erro na busca de usuarios:', err))
           .finally(() => setIsSearching(false));
       }
-    }, 400); // Debounce
+    }, 400);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, activeTab]); // Dispara também quando troca a aba
+  }, [searchQuery, activeTab]);
 
-  // --- NAVEGAÇÃO ---
   const handleAlbumSelect = (album) => {
     navigation.navigate('AlbumDetails', { id: album.id });
   };
 
   const handleUserSelect = (user) => {
-    // Agora mandando "id" exatamente como o ProfilePage espera!
     navigation.navigate('Profile', { id: user.id || user._id });
   };
 
+  const renderAlbumItem = (item) => (
+    <TouchableOpacity
+      style={styles.resultItem}
+      onPress={() => handleAlbumSelect(item)}
+      activeOpacity={0.7}
+    >
+      <Image source={{ uri: item.images?.[0]?.url || NO_COVER }} style={styles.resultCover} />
+      <View style={styles.resultInfo}>
+        <Text style={styles.resultName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.resultSub} numberOfLines={1}>
+          {item.artists?.map((a) => a.name).join(', ')}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color="#55565C" />
+    </TouchableOpacity>
+  );
+
+  const renderUserItem = (item) => (
+    <TouchableOpacity
+      style={styles.resultItem}
+      onPress={() => handleUserSelect(item)}
+      activeOpacity={0.7}
+    >
+      <Image
+        source={{ uri: item.avatarUrl || item.profilePicture || NO_COVER }}
+        style={[styles.resultCover, styles.userAvatarRounded]}
+      />
+      <View style={styles.resultInfo}>
+        <Text style={styles.resultName} numberOfLines={1}>
+          {item.displayName || item.username || item.name}
+        </Text>
+        <Text style={styles.resultSub} numberOfLines={1}>
+          {item.username ? `@${item.username}` : 'Ver perfil'}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color="#55565C" />
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      
-      {/* --- FUNDO COM GRADIENTE --- */}
       <View style={StyleSheet.absoluteFill}>
         <LinearGradient
           colors={['transparent', 'rgba(222, 224, 232, 0.05)', 'transparent']}
@@ -77,23 +114,25 @@ export function SearchScreen({ navigation }) {
         />
         <LinearGradient
           colors={['transparent', '#18191D']}
-          start={{ x: 0.5, y: 0.02 }} 
-          end={{ x: 0.5, y: 0.9 }} 
+          start={{ x: 0.5, y: 0.02 }}
+          end={{ x: 0.5, y: 0.9 }}
           style={StyleSheet.absoluteFill}
         />
       </View>
 
       <View style={styles.container}>
-        
-        {/* BARRA DE BUSCA */}
         <View style={styles.searchBar}>
           <TouchableOpacity onPress={() => navigation.navigate('Feed')} style={styles.backButton}>
-             <Ionicons name="arrow-back" size={24} color="#7E818E" />
+            <Ionicons name="arrow-back" size={24} color="#7E818E" />
           </TouchableOpacity>
-          
+
           <TextInput
             style={styles.searchInput}
-            placeholder={activeTab === 'albums' ? "Qual álbum você quer encontrar?" : "Qual usuário você procura?"}
+            placeholder={
+              activeTab === 'albums'
+                ? 'Qual album voce quer encontrar?'
+                : 'Qual usuario voce procura?'
+            }
             placeholderTextColor="#7E818E"
             autoFocus
             value={searchQuery}
@@ -109,83 +148,48 @@ export function SearchScreen({ navigation }) {
           )}
         </View>
 
-        {/* ABAS (ÁLBUNS / USUÁRIOS) */}
         <View style={styles.tabsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tabButton, activeTab === 'albums' && styles.tabButtonActive]}
             onPress={() => setActiveTab('albums')}
           >
-            <Text style={[styles.tabText, activeTab === 'albums' && styles.tabTextActive]}>Álbuns</Text>
+            <Text style={[styles.tabText, activeTab === 'albums' && styles.tabTextActive]}>
+              Albuns
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tabButton, activeTab === 'users' && styles.tabButtonActive]}
             onPress={() => setActiveTab('users')}
           >
-            <Text style={[styles.tabText, activeTab === 'users' && styles.tabTextActive]}>Usuários</Text>
+            <Text style={[styles.tabText, activeTab === 'users' && styles.tabTextActive]}>
+              Usuarios
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* RESULTADOS DA BUSCA */}
         <View style={styles.searchResultsContainer}>
           {isSearching && <ActivityIndicator size="large" color="#DEE0E8" style={styles.loading} />}
-          
+
           <FlatList
             data={activeTab === 'albums' ? albumResults : userResults}
             keyExtractor={(item, index) => (item.id || item._id || index).toString()}
             contentContainerStyle={styles.resultsList}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              if (activeTab === 'albums') {
-                return (
-                  <TouchableOpacity 
-                    style={styles.resultItem} 
-                    onPress={() => handleAlbumSelect(item)}
-                    activeOpacity={0.7}
-                  >
-                    <Image source={{ uri: item.images?.[0]?.url || NO_COVER }} style={styles.resultCover} />
-                    <View style={styles.resultInfo}>
-                      <Text style={styles.resultName} numberOfLines={1}>{item.name}</Text>
-                      <Text style={styles.resultSub} numberOfLines={1}>
-                        {item.artists?.map(a => a.name).join(', ')}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color="#55565C" />
-                  </TouchableOpacity>
-                );
-              } else {
-                return (
-                  <TouchableOpacity 
-                    style={styles.resultItem} 
-                    onPress={() => handleUserSelect(item)}
-                    activeOpacity={0.7}
-                  >
-                    <Image 
-                      source={{ uri: item.avatarUrl || item.profilePicture || NO_COVER }} 
-                      style={[styles.resultCover, styles.userAvatarRounded]} 
-                    />
-                    <View style={styles.resultInfo}>
-                      <Text style={styles.resultName} numberOfLines={1}>{item.displayName || item.username || item.name}</Text>
-                      <Text style={styles.resultSub} numberOfLines={1}>
-                        {item.username ? `@${item.username}` : 'Ver perfil'}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color="#55565C" />
-                  </TouchableOpacity>
-                );
-              }
-            }}
+            renderItem={({ item }) =>
+              activeTab === 'albums' ? renderAlbumItem(item) : renderUserItem(item)
+            }
             ListEmptyComponent={
               !isSearching && searchQuery ? (
                 <Text style={styles.noResults}>
-                  Nenhum {activeTab === 'albums' ? 'álbum' : 'usuário'} encontrado para "{searchQuery}".
+                  Nenhum {activeTab === 'albums' ? 'album' : 'usuario'} encontrado para "
+                  {searchQuery}".
                 </Text>
               ) : null
             }
           />
         </View>
-
       </View>
     </SafeAreaView>
   );
@@ -195,7 +199,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#18191D',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, 
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,
@@ -210,8 +214,6 @@ const styles = StyleSheet.create({
     marginTop: 40,
     fontSize: 14,
   },
-  
-  /* --- ESTILOS DA BUSCA --- */
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -245,45 +247,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: '100%',
   },
-
-  /* --- ABAS --- */
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)'
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   tabButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderBottomWidth: 2,
-    borderBottomColor: 'transparent'
+    borderBottomColor: 'transparent',
   },
   tabButtonActive: {
-    borderBottomColor: '#DEE0E8'
+    borderBottomColor: '#DEE0E8',
   },
   tabText: {
     color: '#7E818E',
     fontSize: 15,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   tabTextActive: {
-    color: '#DEE0E8'
+    color: '#DEE0E8',
   },
-
-  /* --- RESULTADOS DA BUSCA --- */
   searchResultsContainer: {
     flex: 1,
     paddingHorizontal: 16,
   },
-
   resultsList: {
     paddingBottom: 100,
   },
-  
-  /* --- ESTILOS DOS ITENS DA LISTA --- */
   resultItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -308,7 +303,7 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   userAvatarRounded: {
-    borderRadius: 26, // Faz a foto do usuário ficar redonda
+    borderRadius: 26,
   },
   resultInfo: {
     flex: 1,

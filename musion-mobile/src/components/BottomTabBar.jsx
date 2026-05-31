@@ -1,5 +1,7 @@
 import React from 'react';
-import { Image, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const tabs = [
   {
@@ -21,15 +23,17 @@ const tabs = [
     size: 26,
   },
   {
-    key: 'notifications',
-    route: 'Notifications',
-    icon: require('../../assets/notificon.png'),
+    key: 'chat',
+    route: 'Chat',
+    iconName: 'chatbubble-outline',
     size: 24,
   },
 ];
 
 export default function BottomTabBar({ state, navigation }) {
   const activeRouteName = state.routes[state.index]?.name;
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 12);
 
   const handlePress = (tab) => {
     if (tab.route === activeRouteName) return;
@@ -38,7 +42,15 @@ export default function BottomTabBar({ state, navigation }) {
   };
 
   return (
-    <View style={styles.bottomBar}>
+    <View
+      style={[
+        styles.bottomBar,
+        {
+          height: 58 + bottomInset,
+          paddingBottom: bottomInset,
+        },
+      ]}
+    >
       {tabs.map((tab) => {
         const isActive = tab.route === activeRouteName;
 
@@ -48,18 +60,26 @@ export default function BottomTabBar({ state, navigation }) {
             style={styles.tabItem}
             onPress={() => handlePress(tab)}
           >
-            <Image
-              source={tab.icon}
-              style={[
-                styles.icon,
-                {
-                  width: tab.size,
-                  height: tab.size,
-                  tintColor: isActive ? '#DEE0E8' : '#55565C',
-                },
-              ]}
-              resizeMode="contain"
-            />
+            {tab.icon ? (
+              <Image
+                source={tab.icon}
+                style={[
+                  styles.icon,
+                  {
+                    width: tab.size,
+                    height: tab.size,
+                    tintColor: isActive ? '#DEE0E8' : '#55565C',
+                  },
+                ]}
+                resizeMode="contain"
+              />
+            ) : (
+              <Ionicons
+                name={tab.iconName}
+                size={tab.size}
+                color={isActive ? '#DEE0E8' : '#55565C'}
+              />
+            )}
           </TouchableOpacity>
         );
       })}
@@ -72,8 +92,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: Platform.OS === 'android' ? 85 : 80,
-    paddingBottom: Platform.OS === 'android' ? 30 : 25,
     backgroundColor: '#18191D',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

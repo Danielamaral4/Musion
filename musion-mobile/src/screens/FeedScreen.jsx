@@ -19,10 +19,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native'; 
 import { Ionicons } from '@expo/vector-icons'; 
 import { LinearGradient } from 'expo-linear-gradient'; 
+import { useReviewShare } from '../components/ReviewShareCard';
 import api from '../services/api';
 import { confirmBlockUser, openReportPrompt } from '../services/moderation';
 
 export function FeedScreen({ navigation, route }) {
+  const { shareReviewCard, ShareReviewHost } = useReviewShare();
   const [feedData, setFeedData] = useState([]);
   const [loading, setLoading] = useState(true); // Loader da primeira abertura
   const [refreshing, setRefreshing] = useState(false); // <-- 2. Estado para o Pull-to-Refresh
@@ -131,6 +133,15 @@ export function FeedScreen({ navigation, route }) {
         ]
       );
     }, 300);
+  };
+
+  const handleShareOption = () => {
+    const review = selectedReview;
+    setOptionsModalVisible(false);
+
+    if (review) {
+      setTimeout(() => shareReviewCard(review), 180);
+    }
   };
 
   const confirmDeleteAction = async (reviewId) => {
@@ -296,6 +307,10 @@ const renderItem = ({ item }) => {
               <Text style={[styles.actionText, styles.commentActionText]}>{commentCount}</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity style={styles.actionButton} onPress={() => shareReviewCard(item)}>
+              <Ionicons name="share-social-outline" size={20} color="#55565C" />
+            </TouchableOpacity>
+
             {/* Ícone de Curtir */}
             <TouchableOpacity style={styles.actionButton} onPress={() => toggleLike(item.reviewId)}>
               <Ionicons 
@@ -333,11 +348,23 @@ const renderItem = ({ item }) => {
             <Image source={require('../../assets/musionlogo.png')} style={styles.logo} resizeMode="contain" />
           </View>
 
-          <TouchableOpacity style={styles.navRight} onPress={() => navigation.navigate('AddReview')}>
-            <View style={styles.addIconBox}>
-              <Ionicons name="add" size={24} color="#DEE0E8" />
-            </View>
-          </TouchableOpacity>
+          <View style={styles.navRight}>
+            <TouchableOpacity
+              style={styles.navActionButton}
+              onPress={() => navigation.navigate('Notifications')}
+              activeOpacity={0.75}
+            >
+              <Ionicons name="notifications-outline" size={18} color="#DEE0E8" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.navActionButton}
+              onPress={() => navigation.navigate('AddReview')}
+              activeOpacity={0.75}
+            >
+              <Ionicons name="add" size={20} color="#DEE0E8" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <FlatList
@@ -372,6 +399,11 @@ const renderItem = ({ item }) => {
           <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.sheetHandle} />
 
+            <TouchableOpacity style={styles.sheetActionRow} onPress={handleShareOption}>
+              <Ionicons name="share-social-outline" size={22} color="#DEE0E8" />
+              <Text style={styles.sheetActionText}>Compartilhar como Story</Text>
+            </TouchableOpacity>
+
             {selectedReview?.isMine ? (
               <>
                 <TouchableOpacity style={styles.sheetActionRow} onPress={handleEditOption}>
@@ -402,6 +434,8 @@ const renderItem = ({ item }) => {
         </Pressable>
       </Modal>
 
+      <ShareReviewHost />
+
     </SafeAreaView>
   );
 }
@@ -417,8 +451,8 @@ const styles = StyleSheet.create({
   navAvatar: { width: 32, height: 32, borderRadius: 16 },
   navCenter: { flex: 2, alignItems: 'center' },
   logo: { width: 100, height: 30 },
-  navRight: { flex: 1, alignItems: 'flex-end' },
-  addIconBox: { width: 34, height: 34, borderWidth: 1.5, borderColor: '#DEE0E8', borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  navRight: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row', gap: 8 },
+  navActionButton: { width: 31, height: 31, borderWidth: 1.4, borderColor: '#DEE0E8', borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   listContainer: { paddingTop: 0, paddingBottom: 100 },
   emptyText: { color: '#DEE0E8', textAlign: 'center', marginTop: 50 },
   cardWrapper: { marginBottom: 5, width: '100%', position: 'relative' },

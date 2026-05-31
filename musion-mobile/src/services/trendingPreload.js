@@ -3,6 +3,7 @@ import api from './api';
 
 export const TRENDING_DATA_CACHE_KEY = '@musion_trending_data';
 export const TRENDING_RECOMMENDATIONS_CACHE_KEY = '@musion_trending_recommendations_v4';
+export const TRENDING_NEW_RELEASES_CACHE_KEY = '@musion_trending_new_releases_v1';
 
 let preloadPromise = null;
 
@@ -19,12 +20,13 @@ const readJSON = async (key) => {
 };
 
 export const getCachedTrendingPayload = async () => {
-  const [dashboard, recommendations] = await Promise.all([
+  const [dashboard, recommendations, newReleases] = await Promise.all([
     readJSON(TRENDING_DATA_CACHE_KEY),
     readJSON(TRENDING_RECOMMENDATIONS_CACHE_KEY),
+    readJSON(TRENDING_NEW_RELEASES_CACHE_KEY),
   ]);
 
-  return { dashboard, recommendations };
+  return { dashboard, recommendations, newReleases };
 };
 
 export const preloadTrendingData = async ({ force = false } = {}) => {
@@ -38,11 +40,15 @@ export const preloadTrendingData = async ({ force = false } = {}) => {
     const cached = await getCachedTrendingPayload();
     const shouldFetchDashboard = force || !cached.dashboard;
     const shouldFetchRecommendations = force || !cached.recommendations;
+    const shouldFetchNewReleases = force || !cached.newReleases;
 
-    const [dashboardResult, recommendationsResult] = await Promise.allSettled([
+    const [dashboardResult, recommendationsResult, newReleasesResult] = await Promise.allSettled([
       shouldFetchDashboard ? api.get('/dashboard', { headers }) : Promise.resolve(null),
       shouldFetchRecommendations
         ? api.get('/dashboard/recommend/recent', { headers })
+        : Promise.resolve(null),
+      shouldFetchNewReleases
+        ? api.get('/spotify/new-releases', { headers })
         : Promise.resolve(null),
     ]);
 
@@ -55,6 +61,11 @@ export const preloadTrendingData = async ({ force = false } = {}) => {
       recommendationsResult.status === 'fulfilled' && recommendationsResult.value
         ? recommendationsResult.value.data
         : cached.recommendations;
+
+    const newReleases =
+      newReleasesResult.status === 'fulfilled' && newReleasesResult.value
+        ? newReleasesResult.value.data
+        : cached.newReleases;
 
     const writes = [];
 
@@ -73,9 +84,18 @@ export const preloadTrendingData = async ({ force = false } = {}) => {
       );
     }
 
+    if (newReleasesResult.status === 'fulfilled' && newReleasesResult.value) {
+      writes.push(
+        AsyncStorage.setItem(
+          TRENDING_NEW_RELEASES_CACHE_KEY,
+          JSON.stringify(newReleases)
+        )
+      );
+    }
+
     await Promise.all(writes);
 
-    return { dashboard, recommendations };
+    return { dashboard, recommendations, newReleases };
   })().finally(() => {
     preloadPromise = null;
   });

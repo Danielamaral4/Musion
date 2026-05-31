@@ -210,25 +210,6 @@ export default function SettingsScreen({ navigation }) {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Dispositivo IoT</Text>
-
-            <TouchableOpacity
-              style={styles.actionRow}
-              onPress={() => navigation.navigate('VirtualLed')}
-              activeOpacity={0.75}
-            >
-              <View style={styles.actionIcon}>
-                <Ionicons name="bulb-outline" size={22} color="#DEE0E8" />
-              </View>
-              <View style={styles.actionTextBlock}>
-                <Text style={styles.actionTitle}>Musion Glow</Text>
-                <Text style={styles.actionDescription}>Abrir o simulador do LED virtual.</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="rgba(222, 224, 232, 0.45)" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Legal</Text>
 
             <TouchableOpacity

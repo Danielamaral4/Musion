@@ -16,8 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import { useReviewShare } from '../components/ReviewShareCard';
 import api from '../services/api';
-import { sendAlbumToVirtualLed } from '../services/iotGlow';
 import { confirmBlockUser, openReportPrompt } from '../services/moderation';
 
 const keyboardStickyOffset = { closed: 0, opened: 0 };
@@ -25,6 +25,7 @@ const keyboardStickyOffset = { closed: 0, opened: 0 };
 export default function PostScreen({ route, navigation }) {
   const { reviewId, reviewData } = route.params;
   const insets = useSafeAreaInsets();
+  const { shareReviewCard, ShareReviewHost } = useReviewShare();
 
   const [currentUserId, setCurrentUserId] = useState(null);
   const [comments, setComments] = useState([]);
@@ -45,15 +46,19 @@ export default function PostScreen({ route, navigation }) {
       currentUserId &&
       reviewOwnerId.toString() === currentUserId.toString());
 
+  const getCurrentReviewShareData = () => ({
+    ...reviewData,
+    id: reviewId,
+    reviewId,
+  });
+
+  const handleShareReview = () => {
+    shareReviewCard(getCurrentReviewShareData());
+  };
+
   useEffect(() => {
     fetchCurrentUser();
     fetchComments();
-    sendAlbumToVirtualLed({
-      albumId: reviewData.spotifyId || reviewData.albumId || reviewId,
-      albumName: reviewData.albumName,
-      albumCover: reviewData.albumCover,
-      source: 'PostScreen',
-    });
 
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -170,12 +175,27 @@ export default function PostScreen({ route, navigation }) {
 
   const handleReviewOptions = () => {
     if (isMyReview) {
-      confirmDeleteReview();
+      Alert.alert('Opções do Review', 'O que você deseja fazer?', [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Compartilhar como Story',
+          onPress: handleShareReview,
+        },
+        {
+          text: 'Excluir Review',
+          style: 'destructive',
+          onPress: confirmDeleteReview,
+        },
+      ]);
       return;
     }
 
     Alert.alert('Opções do Review', 'O que você deseja fazer?', [
       { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Compartilhar como Story',
+        onPress: handleShareReview,
+      },
       {
         text: 'Denunciar Review',
         onPress: () =>
@@ -406,6 +426,10 @@ export default function PostScreen({ route, navigation }) {
           </View>
 
           <View style={styles.cardFooter}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleShareReview}>
+              <Ionicons name="share-social-outline" size={20} color="#55565C" />
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
@@ -584,6 +608,7 @@ export default function PostScreen({ route, navigation }) {
             </TouchableOpacity>
             </View>
           </KeyboardStickyView>
+          <ShareReviewHost />
       </View>
     </SafeAreaView>
   );

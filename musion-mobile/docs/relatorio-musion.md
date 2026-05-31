@@ -1,39 +1,48 @@
 # Relatorio tecnico do Musion
 
-Este documento descreve o Musion a partir dos arquivos atuais do projeto. Ele serve como material de apoio para apresentacao, manutencao e transferencia do projeto para outro computador.
+Este documento descreve o Musion no estado atual do projeto. Ele foi escrito para apoiar apresentacao academica, gravacao de video, defesa tecnica e continuidade do desenvolvimento.
 
 ## 1. Visao geral
 
-O Musion e um aplicativo mobile de reviews musicais. A proposta e permitir que usuarios avaliem albuns, escrevam reviews, acompanhem outras pessoas, comentem, curtam, recebam notificacoes e descubram novas recomendacoes com base no gosto musical.
+O Musion e um aplicativo mobile de reviews musicais. A proposta e criar uma camada social sobre albuns: usuarios avaliam discos, escrevem reviews, comentam, curtem, seguem outros perfis, conversam por chat e recebem recomendacoes musicais com base no proprio historico e na atividade da comunidade.
 
-O produto mistura rede social, catalogo musical e recomendacao personalizada:
+O app combina:
 
-- O usuario cria conta, faz login e gerencia seu perfil.
-- O usuario busca albuns usando dados do Spotify.
-- O usuario cria, edita e remove reviews.
-- O feed mostra reviews do proprio usuario e de pessoas seguidas.
-- A pagina Trending mostra albuns populares, bem avaliados e recomendacoes personalizadas.
-- A pagina de album mostra capa, metadados, faixas e reviews da comunidade.
-- O sistema inclui comentarios, likes, notificacoes, bloqueio, denuncia e configuracoes de conta.
-- O Musion Glow simula um dispositivo IoT: a cor predominante da capa do album vira um sinal de LED RGB virtual.
+- Rede social musical.
+- Catalogo de albuns consumindo Spotify.
+- Feed de reviews.
+- Pagina de album com faixas, preview de musica quando disponivel, link para Spotify e reviews da comunidade.
+- Recomendacoes personalizadas.
+- Chat entre usuarios.
+- Notificacoes.
+- Moderacao com denuncia e bloqueio.
+- Configuracoes de conta, troca de senha, exclusao de conta e paginas legais.
+- Controle de nota por sensor do celular, usando acelerometro.
 
 ## 2. Publico-alvo e problema
 
 Publico-alvo:
 
-- Pessoas que escutam albuns e querem registrar opinioes.
-- Usuarios que gostam de descobrir musica por curadoria social.
-- Comunidades interessadas em ranking, nota, reviews e recomendacoes por gosto.
+- Pessoas que escutam albuns completos e gostam de registrar opinioes.
+- Usuarios que querem descobrir musica por recomendacao social.
+- Comunidades que valorizam reviews, notas e rankings musicais.
 
-Problema resolvido:
+Problema:
 
-- Plataformas de streaming focam em consumo rapido, mas nao em reviews detalhados e historico pessoal de opiniao.
-- Recomendacoes automaticas podem ficar repetitivas quando usam apenas uma fonte.
-- O Musion cria uma camada social sobre albuns, combinando opiniao da comunidade, historico do usuario e dados externos.
+- Plataformas de streaming focam no consumo, mas nao em reviews detalhadas e historico pessoal de opiniao.
+- Redes sociais comuns nao organizam discussoes por album.
+- Recomendacoes musicais podem ser repetitivas quando dependem apenas de uma fonte.
 
-## 3. Estrutura de pastas
+Solucao:
 
-Raiz do projeto:
+- O Musion organiza reviews por usuario, album e comunidade.
+- O app cria um feed social e paginas de album.
+- A aba Trending traz recomendacoes e lancamentos.
+- O historico de reviews vira insumo para recomendacoes personalizadas.
+
+## 3. Estrutura do projeto
+
+Raiz:
 
 ```text
 C:\Users\Daniel\Desktop\Musion\musion
@@ -42,281 +51,196 @@ C:\Users\Daniel\Desktop\Musion\musion
 Pastas principais:
 
 ```text
-musion-mobile
-api
-musion-client
-.github/workflows
+api/            Backend NestJS + Prisma + MySQL
+musion-mobile/  App mobile React Native/Expo
+musion-client/  Cliente web legado/paralelo
+.github/        Pipelines de CI/CD
 ```
-
-`musion-mobile` e o app React Native/Expo.
-
-`api` e a API NestJS.
-
-`musion-client` e um cliente web legado ou paralelo.
-
-`.github/workflows` contem os pipelines de CI/CD.
 
 ## 4. Frontend mobile
 
 Local:
 
 ```text
-C:\Users\Daniel\Desktop\Musion\musion\musion-mobile
+musion-mobile/
 ```
 
-Tecnologias principais:
+Tecnologias:
 
 - React Native.
 - Expo SDK 54.
-- React Navigation Stack e Bottom Tabs.
-- Axios para comunicacao HTTP.
-- AsyncStorage para token JWT e cache local.
-- Expo Linear Gradient para iluminacao visual.
-- Expo Image Picker para avatar.
-- React Native Keyboard Controller para comportamento de teclado.
+- React Navigation.
+- Axios.
+- AsyncStorage.
+- Expo Linear Gradient.
+- Expo Image Picker.
+- Expo Sensors, usando acelerometro.
+- Expo AV, para tocar previews.
+- React Native Keyboard Controller.
+- View Shot e Expo Sharing para compartilhar review como imagem.
+- Google Sign-In nativo.
 
-Arquivos principais:
+Telas principais:
 
 ```text
-App.js
-app.json
-src/services/api.js
-src/services/trendingPreload.js
-src/services/iotGlow.js
-src/services/moderation.js
-src/components/BottomTabBar.jsx
-src/screens/LoginScreen.jsx
-src/screens/FeedScreen.jsx
-src/screens/SearchScreen.jsx
-src/screens/TrendingScreen.jsx
-src/screens/NotificationsScreen.jsx
-src/screens/ProfilePage.jsx
-src/screens/AddReviewScreen.jsx
-src/screens/AlbumDetailsScreen.jsx
-src/screens/PostScreen.jsx
-src/screens/SettingsScreen.jsx
-src/screens/VirtualLedScreen.jsx
-src/screens/BlockedUsersScreen.jsx
+LoginScreen.jsx
+FeedScreen.jsx
+SearchScreen.jsx
+TrendingScreen.jsx
+NotificationsScreen.jsx
+ProfilePage.jsx
+AddReviewScreen.jsx
+AlbumDetailsScreen.jsx
+PostScreen.jsx
+SettingsScreen.jsx
+ChatScreen.jsx
+BlockedUsersScreen.jsx
 ```
 
-### 4.1 Navegacao
+### 4.1 Login, cadastro e conta
 
-`App.js` configura:
+A tela de login permite:
 
-- Splash inicial com `assets/splash-icon.png`.
-- `KeyboardProvider`.
-- `NavigationContainer`.
-- Stack principal.
-- Bottom tabs para Feed, Search, Trending e Notifications.
-- Telas secundarias: AddReview, Profile, Settings, VirtualLed, BlockedUsers, AlbumDetails e PostScreen.
+- Login normal com email e senha.
+- Cadastro com nome, username, email e senha.
+- Mostrar ou ocultar senha.
+- Redefinir senha por email/codigo.
+- Login com Google via build nativa e Client IDs configurados.
 
-### 4.2 Servico de API
+A tela de configuracoes permite:
 
-`src/services/api.js` cria uma instancia Axios com:
+- Alterar senha.
+- Sair da conta.
+- Excluir conta.
+- Acessar termos de uso, politica de privacidade e solicitacao publica de exclusao de dados.
+- Gerenciar usuarios bloqueados.
 
-- `baseURL` local configurada em `http://192.168.15.3:3000`.
-- Suporte a `EXPO_PUBLIC_API_URL`.
-- Interceptor para anexar `Authorization: Bearer <token>`.
-- Interceptor para remover token quando a API retorna 401.
+### 4.2 Feed, posts e interacoes
 
-### 4.3 Login e conta
+O feed mostra reviews e permite:
 
-`LoginScreen.jsx` cobre:
+- Abrir um post.
+- Curtir review.
+- Comentar.
+- Abrir perfil do autor.
+- Compartilhar review como imagem.
+- Acessar notificacoes.
 
-- Login.
-- Cadastro.
-- Salvamento de nome/displayName, username, email e senha.
-- Redefinicao de senha com email e codigo.
-- Preload das recomendacoes depois do login.
+A tela de post mostra:
 
-`SettingsScreen.jsx` cobre:
+- Review completa.
+- Comentarios.
+- Campo fixo de comentario ajustado ao teclado.
+- Opcoes de moderacao quando aplicavel.
 
-- Alteracao de senha.
-- Logout.
-- Exclusao de conta.
-- Links legais: privacidade, termos e exclusao publica.
-- Acesso ao Musion Glow e usuarios bloqueados.
+### 4.3 Busca e reviews
 
-### 4.4 Feed, perfil e posts
+A busca permite encontrar albuns ou usuarios.
 
-`FeedScreen.jsx`:
+A tela de adicionar review permite:
 
-- Lista reviews do usuario e de pessoas seguidas.
-- Permite abrir post, comentar, curtir e acessar perfil.
+- Pesquisar album.
+- Selecionar album.
+- Escrever review.
+- Dar nota de 0 a 10.
+- Editar review existente.
+- Controlar a nota inclinando o celular, usando acelerometro.
 
-`ProfilePage.jsx`:
+O uso do acelerometro ajuda a atender a parte de sensores do escopo mobile, demonstrando interacao com hardware do proprio dispositivo.
 
-- Mostra perfil, avatar, bio, seguidores, seguindo e reviews.
-- Permite seguir/deixar de seguir.
-- Permite editar perfil e avatar no proprio perfil.
-- Modais de seguidores/seguindo fecham ao tocar fora.
+### 4.4 Pagina de album
 
-`PostScreen.jsx`:
+A pagina de album mostra:
 
-- Mostra uma review especifica.
-- Lista comentarios.
-- Permite adicionar e excluir comentario proprio.
-- Mantem input de comentario ajustado ao teclado.
+- Capa.
+- Titulo.
+- Artista.
+- Ano, quantidade de faixas e duracao.
+- Media da comunidade.
+- Botao para avaliar ou editar review.
+- Botao com icone do Spotify para abrir o album no Spotify.
+- Lista de faixas.
+- Botao de play por faixa.
+- Preview quando o Spotify ou fallback externo disponibiliza trecho.
+- Reviews da comunidade.
 
-### 4.5 Busca, reviews e album
+Quando a faixa nao possui preview, o sistema tenta buscar preview por fallback. Se nao encontrar, a experiencia segue com o link do Spotify.
 
-`SearchScreen.jsx`:
+### 4.5 Trending e recomendacoes
 
-- Busca albuns no Spotify via API.
-- Navega para detalhes do album.
+A tela Trending inclui:
 
-`AddReviewScreen.jsx`:
+- Em alta no Musion.
+- Lancamentos da semana.
+- Aclamacao da critica.
+- Recomendacoes baseadas nas ultimas reviews relevantes do usuario.
 
-- Busca album.
-- Cria ou edita review.
-- Usa slider de nota customizado.
-- Envia album, nota e texto para o backend.
+O app pre-carrega dados de trending/recomendacao quando abre, reduzindo a espera ao entrar na aba.
 
-`AlbumDetailsScreen.jsx`:
+### 4.6 Chat social
 
-- Busca detalhes do album no Spotify.
-- Mostra capa, artista, ano, quantidade de faixas, duracao e media da comunidade.
-- Envia a capa para o Musion Glow.
-- Lista faixas.
-- Lista reviews da comunidade.
-- Permite avaliar/editar review.
-- Permite curtir, comentar, denunciar ou bloquear usuario.
+O chat atual e um chat entre usuarios:
 
-### 4.6 Trending e recomendacoes
-
-`TrendingScreen.jsx` usa dados da dashboard e recomendacoes personalizadas.
-
-`src/services/trendingPreload.js`:
-
-- Carrega recomendacoes assim que o app abre, quando ha token.
-- Salva cache local no AsyncStorage.
-- Reduz espera ao abrir a aba Trending.
-
-### 4.7 IoT virtual
-
-`src/services/iotGlow.js` envia para a API:
-
-- ID do album.
-- Nome do album.
-- URL da capa.
-- Origem do evento.
-
-`VirtualLedScreen.jsx` mostra:
-
-- Cor atual do LED.
-- HEX e RGB.
-- Historico de sinais.
-- Botao para testar uma cor aleatoria.
-
-Esse recurso emula um ESP32 com LED RGB. Em uma versao com hardware real, a API poderia publicar o estado em MQTT, WebSocket ou HTTP para um ESP32 fisico.
+- Buscar usuarios.
+- Abrir conversa.
+- Listar conversas recentes.
+- Enviar mensagens.
+- Carregar historico.
 
 ## 5. Backend
 
 Local:
 
 ```text
-C:\Users\Daniel\Desktop\Musion\musion\api
+api/
 ```
 
-Tecnologias principais:
+Tecnologias:
 
 - NestJS.
 - TypeScript.
 - Prisma ORM.
 - MySQL.
 - JWT e Passport.
-- Bcrypt para senha.
-- Axios via `@nestjs/axios`.
+- Bcrypt.
+- Nodemailer para reset de senha.
+- Axios via Nest.
 - Spotify Web API.
 - Last.fm API.
-- OpenAI SDK para chat/IA.
-- Cloudinary para avatar.
-- Fast Average Color para extrair cor dominante da capa.
+- Deezer como fallback de preview.
+- Cloudinary para imagens de avatar.
 
-Arquivos e modulos principais:
+Modulos principais:
 
 ```text
-src/main.ts
-src/app.module.ts
-src/auth
-src/users
-src/spotify
-src/lastfm
-src/dashboard
-src/reviews
-src/comments
-src/notifications
-src/iot
-src/moderation
-src/legal
-src/chat
-src/prisma
-prisma/schema.prisma
+auth
+users
+spotify
+lastfm
+dashboard
+reviews
+comments
+notifications
+chat
+moderation
+legal
+prisma
 ```
 
-### 5.1 Inicializacao da API
+### 5.1 Rotas principais
 
-`src/main.ts`:
-
-- Cria a aplicacao Nest.
-- Habilita CORS.
-- Escuta na porta 3000.
-
-### 5.2 Modulos
-
-`src/app.module.ts` importa:
-
-- `ConfigModule`.
-- `PrismaModule`.
-- `AuthModule`.
-- `UsersModule`.
-- `SpotifyModule`.
-- `ReviewsModule`.
-- `DashboardModule`.
-- `AlbumModule`.
-- `ChatModule`.
-- `CommentsModule`.
-- `IotModule`.
-- `ModerationModule`.
-- `LegalModule`.
-
-### 5.3 Autenticacao
-
-`src/auth` cobre:
-
-- Cadastro.
-- Login.
-- JWT.
-- Estrategia local.
-- Estrategia JWT.
-- Esqueci minha senha.
-- Reset de senha.
-
-Rotas principais:
+Autenticacao:
 
 ```text
 POST /auth/register
 POST /auth/login
+POST /auth/google
 POST /auth/forgot-password
 POST /auth/reset-password
 GET  /auth/profile
 ```
 
-### 5.4 Usuarios
-
-`src/users` cobre:
-
-- Buscar usuario logado.
-- Buscar perfil publico.
-- Editar perfil.
-- Alterar senha.
-- Excluir conta.
-- Upload de avatar via Cloudinary.
-- Buscar usuarios.
-- Seguir e deixar de seguir.
-- Listar seguidores e seguindo.
-
-Rotas principais:
+Usuarios:
 
 ```text
 GET    /users/me
@@ -332,117 +256,68 @@ GET    /users/:id/followers
 GET    /users/:id/following
 ```
 
-### 5.5 Reviews, comentarios, likes e notificacoes
-
-`src/reviews`:
-
-- Criacao de review.
-- Edicao de review propria.
-- Remocao de review propria.
-- Reviews do usuario.
-- Reviews de um album.
-- Comentarios em review.
-
-`src/comments`:
-
-- Cria comentario.
-- Lista comentarios de uma review.
-- Remove comentario proprio.
-
-`src/dashboard`:
-
-- Feed.
-- Curtir/descurtir review.
-- Dados de trending.
-- Recomendacoes.
-
-`src/notifications`:
-
-- Cria notificacoes de interacoes como like, follow e comentario.
-- Entrega notificacoes ao app.
-
-### 5.6 Recomendacoes
-
-O fluxo atual combina varias fontes:
-
-- Reviews recentes e positivas do usuario.
-- Spotify para detalhes, generos, albuns e artistas relacionados.
-- Last.fm para artistas similares e tags.
-- Sinais da comunidade: usuarios que gostaram do mesmo album e albuns bem avaliados por eles.
-- Filtros para remover albuns ja avaliados.
-- Diversificacao para evitar repetir artista ou repetir albuns iguais em secoes diferentes.
-
-Rota principal consumida pelo app:
+Reviews e comentarios:
 
 ```text
-GET /dashboard/recommend/recent
+POST   /reviews
+GET    /reviews/me
+PATCH  /reviews/:id
+DELETE /reviews/:id
+GET    /reviews/album/:albumId
+GET    /reviews/:id/comments
+POST   /reviews/:id/comments
+DELETE /reviews/:reviewId/comments/:id
 ```
 
-Ela retorna tres blocos:
-
-- Recomendacoes baseadas no ultimo review relevante.
-- Recomendacoes baseadas no segundo review relevante.
-- Recomendacoes baseadas no terceiro review relevante.
-
-### 5.7 Spotify e Last.fm
-
-`src/spotify/spotify.service.ts` usa Client Credentials Flow do Spotify para:
-
-- Buscar albuns.
-- Buscar detalhes de album.
-- Buscar generos de artista.
-- Buscar albuns de um artista.
-- Buscar artistas relacionados.
-- Buscar albuns por genero.
-
-`src/lastfm/lastfm.service.ts` usa Last.fm para:
-
-- Artistas similares.
-- Tags de artista.
-- Tags de album.
-
-### 5.8 IoT virtual
-
-`src/iot/iot.service.ts`:
-
-- Recebe uma capa de album.
-- Usa `fast-average-color-node` para extrair cor dominante.
-- Salva evento no banco.
-- Retorna HEX e RGB.
-- Possui fallback deterministico quando a capa nao pode ser lida.
-
-Rotas:
+Spotify e musicas:
 
 ```text
-POST /iot/album-color
-POST /iot/led/test
-GET  /iot/led/state
-GET  /iot/led/history
+GET /spotify/search
+GET /spotify/album/:id
+GET /spotify/track-preview
+GET /spotify/new-releases
 ```
 
-### 5.9 Moderacao e legal
+Dashboard e recomendacoes:
 
-`src/moderation`:
+```text
+GET  /dashboard
+GET  /dashboard/feed
+POST /dashboard/review/:id/like
+GET  /dashboard/recommend/recent
+GET  /dashboard/recommend/second
+GET  /dashboard/recommend/third
+```
 
-- Denunciar usuario/review/comentario.
-- Bloquear usuario.
-- Desbloquear usuario.
-- Listagem administrativa de denuncias.
+Chat:
 
-`src/legal`:
+```text
+GET  /chat/users
+GET  /chat/conversations
+GET  /chat/messages/:userId
+POST /chat/messages/:userId
+```
 
-- Politica de privacidade em HTML.
-- Termos de uso em HTML.
-- Pagina publica de exclusao de conta/dados.
-- Registro de solicitacoes de exclusao.
+Moderacao e legal:
+
+```text
+POST   /moderation/reports
+GET    /moderation/blocks
+POST   /moderation/blocks/:userId
+DELETE /moderation/blocks/:userId
+GET    /legal/privacy
+GET    /legal/terms
+GET    /legal/delete-account
+POST   /legal/delete-account-request
+```
+
+Saude da API:
+
+```text
+GET /health
+```
 
 ## 6. Banco de dados
-
-Arquivo:
-
-```text
-api/prisma/schema.prisma
-```
 
 Banco:
 
@@ -450,165 +325,102 @@ Banco:
 MySQL
 ```
 
+ORM:
+
+```text
+Prisma
+```
+
 Modelos principais:
 
-- `User`: conta, email, username, senha, displayName, avatar, bio, reset de senha.
-- `Review`: texto, nota, album, capa, artista, relacao com usuario.
-- `Follow`: relacao seguidor/seguindo.
+- `User`: conta, email, username, senha criptografada, displayName, avatar, bio e token de reset.
+- `Review`: review, nota, album, artista, capa e usuario.
+- `Follow`: seguidores.
 - `Like`: curtidas em reviews.
-- `Comment`: comentarios em reviews.
-- `Notification`: notificacoes de interacao.
-- `IotEvent`: historico de cores do Musion Glow.
-- `UserBlock`: bloqueios entre usuarios.
+- `Comment`: comentarios.
+- `Notification`: notificacoes.
+- `Chat`: mensagens/conversas.
+- `UserBlock`: usuarios bloqueados.
 - `Report`: denuncias.
-- `DataDeletionRequest`: solicitacoes publicas de exclusao de dados.
-- `Chat`: historico de mensagens de chat/IA.
+- `DataDeletionRequest`: solicitacoes de exclusao de dados.
 
-## 7. IA, Big Data e IoT
+## 7. Recomendacoes, dados e IA
 
-IA:
+O Musion usa um motor de recomendacao hibrido. Ele combina dados coletados no app, APIs externas e um modelo de scoring para calcular similaridade e relevancia musical.
 
-- O backend tem integracao com OpenAI no modulo `chat`.
-- O sistema de recomendacao usa uma abordagem hibrida com regras, dados da comunidade, Spotify e Last.fm.
-- Para evolucao, o proximo passo seria treinar ou consumir um modelo que pontue similaridade entre albuns por tags, generos, artistas, ano, energia e historico do usuario.
+Sinais usados:
 
-Big Data:
+- Reviews do usuario.
+- Notas altas.
+- Historico recente.
+- Albums ja avaliados, para evitar repeticao.
+- Dados da comunidade.
+- Dados do Spotify.
+- Tags e artistas similares via Last.fm.
+- Lancamentos recentes.
 
-- O projeto coleta reviews, notas, likes, follows, comentarios e eventos IoT.
-- Esses dados podem alimentar metricas de popularidade, gosto do usuario e recomendacoes.
-- Para apresentacao academica, a camada atual pode ser descrita como analise de dados coletados com agregacoes por album, usuario e comunidade.
+Para apresentacao academica, esta parte pode ser defendida como analise de dados e recomendacao inteligente via API, pois o app consome insights calculados no backend a partir do historico do usuario e de bases musicais externas.
 
-IoT:
+## 8. Sensores / IoT
 
-- O Musion Glow simula um ESP32 com LED RGB.
-- A cor predominante da capa do album vira um estado RGB.
-- O historico de sinais fica salvo em `IotEvent`.
-- O simulador permite demonstrar a funcionalidade mesmo sem hardware fisico.
+O recurso ativo de sensor esta no cadastro de review:
 
-## 8. QA e CI/CD
+- O usuario pode ativar o controle por sensor.
+- O acelerometro do celular controla a nota do slider.
+- Ao inclinar o aparelho, a nota muda em tempo real.
 
-Testes e validacoes existentes:
+Esse recurso demonstra integracao com sensor fisico do dispositivo mobile. Para a apresentacao, ele deve ser mostrado como sensor mobile aplicado a interacao musical.
 
-- Backend usa Jest.
-- Backend tem testes unitarios em modulos como auth, users, dashboard, reviews, spotify e legal.
-- Backend tem teste e2e em `test/app.e2e-spec.ts`.
-- Mobile tem script `npm run validate` que valida JSX.
+## 9. QA e CI/CD
 
-Pipelines:
+Validacoes atuais:
+
+- Testes Jest no backend.
+- Build do backend.
+- Validacao JSX do app mobile.
+- Pipeline GitHub Actions para backend e mobile.
+- Workflow para disparar build Android preview via EAS.
+
+Arquivos:
 
 ```text
 .github/workflows/ci.yml
 .github/workflows/eas-android-preview.yml
 ```
 
-`ci.yml`:
+Evidencias adicionais:
 
-- Instala dependencias do backend.
-- Gera Prisma Client.
-- Roda testes unitarios.
-- Faz build da API.
-- Instala dependencias do mobile.
-- Roda validacao JSX.
+- Plano JMeter em `api/tests/performance/musion-api.jmx`.
+- Build Android preview via EAS.
+- Roteiro de demonstracao cobrindo os fluxos principais do app.
 
-`eas-android-preview.yml`:
+## 10. Como rodar
 
-- Roda validacao do app.
-- Dispara build Android preview pelo EAS.
+Backend:
 
-## 9. Como rodar localmente
-
-### 9.1 Backend
-
-```bash
+```powershell
 cd C:\Users\Daniel\Desktop\Musion\musion\api
 npm install
 npx prisma generate
 npm run start:dev
 ```
 
-A API sobe em:
+Mobile:
 
-```text
-http://localhost:3000
-```
-
-Se aparecer `EADDRINUSE`, ja existe algo usando a porta 3000.
-
-### 9.2 Mobile
-
-```bash
+```powershell
 cd C:\Users\Daniel\Desktop\Musion\musion\musion-mobile
 npm install
 npx expo start
 ```
 
-No celular fisico, a URL da API em `src/services/api.js` precisa apontar para o IP do computador na mesma rede.
+Build APK preview:
 
-## 10. Como abrir no notebook
-
-A melhor forma e usar GitHub/Git. Assim voce consegue editar nos dois computadores sem copiar pasta manualmente toda vez.
-
-No computador atual:
-
-```bash
-cd C:\Users\Daniel\Desktop\Musion\musion
-git status
-git add .
-git commit -m "Atualiza Musion"
-git remote add origin https://github.com/SEU_USUARIO/musion.git
-git push -u origin main
+```powershell
+cd C:\Users\Daniel\Desktop\Musion\musion\musion-mobile
+npx eas-cli@latest build -p android --profile preview --clear-cache
 ```
 
-Se o remoto ja existir, use apenas:
-
-```bash
-git push
-```
-
-No notebook:
-
-```bash
-git clone https://github.com/SEU_USUARIO/musion.git
-cd musion
-```
-
-Instale o backend:
-
-```bash
-cd api
-npm install
-npx prisma generate
-npm run start:dev
-```
-
-Instale o mobile:
-
-```bash
-cd ..\musion-mobile
-npm install
-npx expo start
-```
-
-Importante:
-
-- Nao suba `.env` para o GitHub.
-- Copie o `.env` do backend manualmente para o notebook por um canal seguro.
-- Nao copie `node_modules`; rode `npm install`.
-- Antes de editar em qualquer computador, rode `git pull`.
-- Depois de terminar uma sessao de trabalho, rode `git add`, `git commit` e `git push`.
-
-Fluxo recomendado ao alternar entre PC e notebook:
-
-```bash
-git pull
-# edita o projeto
-git status
-git add .
-git commit -m "Descreve a alteracao"
-git push
-```
-
-## 11. Variaveis de ambiente esperadas
+## 11. Variaveis de ambiente
 
 Backend:
 
@@ -618,54 +430,45 @@ JWT_SECRET
 SPOTIFY_CLIENT_ID
 SPOTIFY_CLIENT_SECRET
 LASTFM_API_KEY
-OPENAI_API_KEY
 CLOUDINARY_CLOUD_NAME
 CLOUDINARY_API_KEY
 CLOUDINARY_API_SECRET
-MODERATION_ADMIN_USER_IDS
-```
-
-Exemplo sem segredos:
-
-```text
-api/.env.example
+SMTP_HOST
+SMTP_PORT
+SMTP_SECURE
+SMTP_USER
+SMTP_PASS
+SMTP_FROM
+GOOGLE_WEB_CLIENT_ID
+GOOGLE_ANDROID_CLIENT_ID
 ```
 
 Mobile:
 
 ```text
 EXPO_PUBLIC_API_URL
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID
 ```
 
-Exemplo:
+## 12. Pontos fortes para a apresentacao
 
-```text
-musion-mobile/.env.example
-```
+- Produto mobile funcional, com identidade visual propria.
+- Fluxo social completo: review, feed, perfil, comentarios, likes e notificacoes.
+- Pagina de album rica, com preview e Spotify.
+- Recomendacoes personalizadas e lancamentos da semana.
+- Chat entre usuarios.
+- Compartilhamento de review como imagem.
+- Moderacao, bloqueio e paginas legais.
+- Conta com troca de senha, exclusao e reset por email.
+- Sensor do celular integrado ao slider de nota.
+- Backend organizado em modulos e banco relacional.
+- CI/CD estruturado.
 
-Se `EXPO_PUBLIC_API_URL` nao estiver definida, o app usa a URL local configurada em `src/services/api.js`.
+## 13. Pontos a falar como proximos passos
 
-## 12. Pontos fortes atuais
-
-- App mobile funcional em React Native.
-- Backend modular em NestJS.
-- Banco relacional com Prisma.
-- Login, cadastro e recuperacao de senha.
-- Reviews, feed, comentarios, likes e notificacoes.
-- Perfil social com seguidores.
-- Recomendacao hibrida usando Spotify, Last.fm e comunidade.
-- Simulador IoT pronto para demonstracao sem hardware.
-- Moderacao com denuncia e bloqueio.
-- Itens legais para privacidade, termos e exclusao de dados.
-- Pipeline de CI/CD ja estruturado.
-
-## 13. Pontos que ainda podem evoluir
-
-- Ajustar todos os textos com acentuacao correta nos arquivos que ainda aparecem sem acento.
-- Publicar o backend em uma URL HTTPS real.
-- Configurar `EXPO_PUBLIC_API_URL` para producao.
-- Melhorar cobertura de testes do mobile com testes de interface.
-- Adicionar teste de performance com JMeter para endpoints principais.
-- Trocar a redefinicao de senha com codigo exibido em tela por envio real de email.
-- Integrar Google Login se houver tempo e escopo.
-- Subir build Android final pela Play Console.
+- Publicar backend em HTTPS.
+- Publicar backend em HTTPS.
+- Ampliar massa de dados para recomendacoes.
+- Expandir cobertura automatizada mobile.
+- Preparar versao de loja com Play Console.

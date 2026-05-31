@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { LinearGradient } from 'expo-linear-gradient'; // <-- Novo import adicionado
+import { Accelerometer } from 'expo-sensors';
 
 // ⚠️ Confirmando: seu import estava como services/api na última mensagem
 import api from '../services/api';
@@ -24,6 +25,7 @@ import api from '../services/api';
 const NO_COVER = "https://via.placeholder.com/150/333333/FFFFFF?text=No+Cover";
 const SLIDER_THUMB_SIZE = 38;
 const SLIDER_EDGE_INSET = 12;
+const clampRating = (value) => Math.min(Math.max(Number(value) || 0, 0), 10);
 
 export function AddReviewScreen({ navigation, route }) {
   const reviewToEdit = route.params?.reviewToEdit || null;
@@ -44,10 +46,13 @@ export function AddReviewScreen({ navigation, route }) {
   const [rating, setRating] = useState(isEditing ? reviewToEdit.rating : 5);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isSliderActive, setIsSliderActive] = useState(false);
+  const [sensorRatingEnabled, setSensorRatingEnabled] = useState(false);
+  const [sensorRatingUsed, setSensorRatingUsed] = useState(false);
   const [reviewText, setReviewText] = useState(isEditing ? reviewToEdit.text : '');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const sensorSubscriptionRef = useRef(null);
 
   // --- PREENCHER DADOS (EDIÇÃO) ---
   useEffect(() => {
@@ -106,6 +111,13 @@ export function AddReviewScreen({ navigation, route }) {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, isEditing]);
+
+  useEffect(() => {
+    return () => {
+      sensorSubscriptionRef.current?.remove();
+      sensorSubscriptionRef.current = null;
+    };
+  }, []);
 
   // --- PROCESSAMENTO DADOS ---
   const processAlbumData = (data) => {
@@ -184,6 +196,7 @@ export function AddReviewScreen({ navigation, route }) {
       } else {
         await api.post('/reviews', payload);
       }
+
       if (returnToAlbum) {
         navigation.goBack();
       } else {
@@ -200,8 +213,8 @@ export function AddReviewScreen({ navigation, route }) {
   };
 
   // --- LÓGICA DE CORES (INTERPOLAÇÃO RGB) ---
-  const getDynamicColor = (value) => {
-    const r = parseFloat(value);
+  const getDynamicRgb = (value) => {
+    const r = clampRating(value);
     
     const red = { r: 242, g: 5, b: 5 };      
     const yellow = { r: 242, g: 203, b: 5 }; 
@@ -221,7 +234,32 @@ export function AddReviewScreen({ navigation, route }) {
       finalB = Math.round(yellow.b + (green.b - yellow.b) * percentage);
     }
 
-    return `rgb(${finalR}, ${finalG}, ${finalB})`;
+    return { red: finalR, green: finalG, blue: finalB };
+  };
+
+  const getDynamicColor = (value) => {
+    const color = getDynamicRgb(value);
+    return `rgb(${color.red}, ${color.green}, ${color.blue})`;
+  };
+
+  const toggleSensorRating = () => {
+    if (sensorRatingEnabled) {
+      sensorSubscriptionRef.current?.remove();
+      sensorSubscriptionRef.current = null;
+      setSensorRatingEnabled(false);
+      setIsSliderActive(false);
+      return;
+    }
+
+    Accelerometer.setUpdateInterval(120);
+    sensorSubscriptionRef.current = Accelerometer.addListener(({ x }) => {
+      const nextRating = Math.round(clampRating(((x + 1) / 2) * 10) * 10) / 10;
+      setRating(nextRating);
+      setSensorRatingUsed(true);
+    });
+
+    setSensorRatingEnabled(true);
+    setIsSliderActive(true);
   };
 
   const getTitleFontSize = (title) => {
@@ -380,6 +418,39 @@ export function AddReviewScreen({ navigation, route }) {
                 </Text>
               </View>
             </View>
+
+            <TouchableOpacity
+              style={[
+                styles.sensorRatingButton,
+                sensorRatingEnabled && styles.sensorRatingButtonActive,
+              ]}
+              onPress={toggleSensorRating}
+              activeOpacity={0.78}
+            >
+              <Ionicons
+                name={sensorRatingEnabled ? 'phone-portrait' : 'phone-portrait-outline'}
+                size={18}
+                color={sensorRatingEnabled ? '#18191D' : '#DEE0E8'}
+              />
+              <View style={styles.sensorRatingTextBlock}>
+                <Text
+                  style={[
+                    styles.sensorRatingTitle,
+                    sensorRatingEnabled && styles.sensorRatingTitleActive,
+                  ]}
+                >
+                  {sensorRatingEnabled ? 'Sensor controlando a nota' : 'Controlar nota com sensor'}
+                </Text>
+                <Text
+                  style={[
+                    styles.sensorRatingHint,
+                    sensorRatingEnabled && styles.sensorRatingHintActive,
+                  ]}
+                >
+                  Incline o celular para mover o slider.
+                </Text>
+              </View>
+            </TouchableOpacity>
 
             {submitError ? <Text style={styles.errorMessage}>{submitError}</Text> : null}
             
@@ -649,6 +720,40 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  sensorRatingButton: {
+    minHeight: 50,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#dee0e831',
+    backgroundColor: 'rgba(222, 224, 232, 0.04)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+  sensorRatingButtonActive: {
+    backgroundColor: '#DEE0E8',
+    borderColor: '#DEE0E8',
+  },
+  sensorRatingTextBlock: {
+    flex: 1,
+  },
+  sensorRatingTitle: {
+    color: '#DEE0E8',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  sensorRatingTitleActive: {
+    color: '#18191D',
+  },
+  sensorRatingHint: {
+    color: 'rgba(222, 224, 232, 0.48)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  sensorRatingHintActive: {
+    color: 'rgba(24, 25, 29, 0.62)',
   },
   submitButton: {
     backgroundColor: '#DEE0E8',

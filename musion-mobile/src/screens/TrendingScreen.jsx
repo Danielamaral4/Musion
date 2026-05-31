@@ -113,6 +113,7 @@ const AlbumGrid = ({ albums, navigation }) => {
 export function TrendingScreen({ navigation }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [weeklyReleases, setWeeklyReleases] = useState([]);
   
   const [recommendedByLast, setRecommendedByLast] = useState([]);
   const [lastAlbumName, setLastAlbumName] = useState(null);
@@ -137,6 +138,10 @@ export function TrendingScreen({ navigation }) {
         applyRecommendations(cached.recommendations);
       }
 
+      if (cached.newReleases) {
+        setWeeklyReleases(cached.newReleases.slice(0, 12));
+      }
+
       const fresh = await preloadTrendingData({ force: true });
 
       if (fresh?.dashboard) {
@@ -145,6 +150,10 @@ export function TrendingScreen({ navigation }) {
 
       if (fresh?.recommendations) {
         applyRecommendations(fresh.recommendations);
+      }
+
+      if (fresh?.newReleases) {
+        setWeeklyReleases(fresh.newReleases.slice(0, 12));
       }
     } catch (error) {
       console.error("Erro ao carregar Dashboard", error);
@@ -202,6 +211,13 @@ export function TrendingScreen({ navigation }) {
           
           <Text style={styles.sectionTitle}>Em Alta no Musion</Text>
           {loading && !data ? <SkeletonGrid /> : <AlbumGrid albums={data?.popular} navigation={navigation} />}
+
+          <Text style={styles.sectionTitle}>Lancamentos da Semana</Text>
+          {loading && !weeklyReleases.length ? (
+            <SkeletonGrid />
+          ) : (
+            <AlbumGrid albums={weeklyReleases} navigation={navigation} />
+          )}
 
           <Text style={styles.sectionTitle}>Aclamação da Crítica</Text>
           {loading && !data ? <SkeletonGrid /> : <AlbumGrid albums={data?.topRated} navigation={navigation} />}

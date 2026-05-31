@@ -21,11 +21,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useReviewShare } from '../components/ReviewShareCard';
 import api from '../services/api';
 import { confirmBlockUser, confirmUnblockUser, openReportPrompt } from '../services/moderation';
 
 export default function ProfilePage({ navigation, route }) {
   const { id } = route?.params || {}; 
+  const { shareReviewCard, ShareReviewHost } = useReviewShare();
 
   const [profile, setProfile] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -390,6 +392,15 @@ export default function ProfilePage({ navigation, route }) {
     }, 300);
   };
 
+  const handleShareOption = () => {
+    const review = selectedReview;
+    setOptionsModalVisible(false);
+
+    if (review) {
+      setTimeout(() => shareReviewCard(getReviewData(review)), 180);
+    }
+  };
+
   const toggleLike = async (review) => {
     setReviews(prev =>
       prev.map(r =>
@@ -641,6 +652,13 @@ export default function ProfilePage({ navigation, route }) {
                     <Text style={[styles.actionText, styles.commentActionText]}>{commentCount}</Text>
                   </TouchableOpacity>
 
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => shareReviewCard(getReviewData(review))}
+                  >
+                    <Ionicons name="share-social-outline" size={20} color="#55565C" />
+                  </TouchableOpacity>
+
                   <TouchableOpacity style={styles.actionButton} onPress={() => toggleLike(review)}>
                     <Ionicons 
                       name={review.isLiked ? "heart" : "heart-outline"} 
@@ -672,6 +690,11 @@ export default function ProfilePage({ navigation, route }) {
         >
           <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.sheetHandle} />
+
+            <TouchableOpacity style={styles.sheetActionRow} onPress={handleShareOption}>
+              <Ionicons name="share-social-outline" size={22} color="#DEE0E8" />
+              <Text style={styles.sheetActionText}>Compartilhar como Story</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.sheetActionRow} onPress={handleEditOption}>
               <Ionicons name="pencil-outline" size={22} color="#DEE0E8" />
@@ -827,6 +850,8 @@ export default function ProfilePage({ navigation, route }) {
           <Image source={{ uri: imageToShow }} style={styles.imageModalImg} resizeMode="contain" />
         </TouchableOpacity>
       </Modal>
+
+      <ShareReviewHost />
 
     </SafeAreaView>
   );

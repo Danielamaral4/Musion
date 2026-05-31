@@ -6,7 +6,12 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.15.4:3000",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "711629504469-4k9ig2cvtm141pt4r8n6vf976t0gsl29.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "711629504469-dg4083dgom1le9l6qcanhlmq4j2k5b72.apps.googleusercontent.com"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -14,7 +19,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.15.3:3000"
+        "EXPO_PUBLIC_API_URL": "http://192.168.15.4:3000",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "711629504469-4k9ig2cvtm141pt4r8n6vf976t0gsl29.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "711629504469-dg4083dgom1le9l6qcanhlmq4j2k5b72.apps.googleusercontent.com"
       }
     },
     "production": {

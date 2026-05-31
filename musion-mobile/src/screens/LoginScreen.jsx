@@ -11,8 +11,22 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import { preloadTrendingData } from '../services/trendingPreload';
+
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '';
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '';
+
+const isGoogleConfigured = Boolean(GOOGLE_WEB_CLIENT_ID);
+
+const loadNativeGoogleSignin = () => {
+  try {
+    return require('@react-native-google-signin/google-signin');
+  } catch {
+    return null;
+  }
+};
 
 export function LoginScreen({ navigation }) {
   const [authMode, setAuthMode] = useState('login');
@@ -23,9 +37,12 @@ export function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [resetCode, setResetCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const isLogin = authMode === 'login';
   const isRegister = authMode === 'register';
@@ -38,6 +55,21 @@ export function LoginScreen({ navigation }) {
     setSuccess('');
   };
 
+  const completeLogin = async (data, message = 'Login bem-sucedido!') => {
+    const token = data.access_token;
+
+    await AsyncStorage.setItem('musion_token', token);
+
+    const avatarToSave = data.user?.avatarUrl || data.avatarUrl || '';
+    if (avatarToSave) {
+      await AsyncStorage.setItem('musion_user_avatar', avatarToSave);
+    }
+
+    preloadTrendingData({ force: true }).catch(() => {});
+    setSuccess(message);
+    navigation.replace('Feed');
+  };
+
   const switchMode = (mode) => {
     setAuthMode(mode);
     setResetRequested(false);
@@ -46,7 +78,112 @@ export function LoginScreen({ navigation }) {
     setPassword('');
     setResetCode('');
     setNewPassword('');
+    setShowPassword(false);
+    setShowNewPassword(false);
     clearMessages();
+  };
+
+  const handleGoogleLogin = async () => {
+    clearMessages();
+
+    if (!isGoogleConfigured) {
+      setError('Configure EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID no musion-mobile/.env e reinicie o app.');
+      return;
+    }
+
+    const googleModule = loadNativeGoogleSignin();
+    if (!googleModule?.GoogleSignin) {
+      setError('Login com Google nativo precisa de uma development build. Ele nao roda dentro do Expo Go.');
+      return;
+    }
+
+    const { GoogleSignin, statusCodes, isErrorWithCode, isSuccessResponse } = googleModule;
+
+    setGoogleLoading(true);
+
+    try {
+      GoogleSignin.configure({
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        iosClientId: GOOGLE_IOS_CLIENT_ID || undefined,
+        scopes: ['profile', 'email'],
+        offlineAccess: false,
+      });
+
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      }
+
+      await GoogleSignin.signOut().catch(() => {});
+
+      const result = await GoogleSignin.signIn();
+
+      if (!isSuccessResponse(result)) {
+        setGoogleLoading(false);
+        return;
+      }
+
+      let idToken = result.data?.idToken;
+
+      if (!idToken) {
+        const tokens = await GoogleSignin.getTokens().catch(() => null);
+        idToken = tokens?.idToken;
+      }
+
+      if (!idToken) {
+        setError('O Google nao retornou um idToken. Confira se o WEB Client ID esta correto.');
+        setGoogleLoading(false);
+        return;
+      }
+
+      const response = await api.post('/auth/google', { idToken });
+      await completeLogin(response.data, 'Login com Google realizado!');
+    } catch (err) {
+      console.log('Erro no login com Google:', {
+        code: err.code,
+        message: err.message,
+        response: err.response?.data,
+        baseURL: api.defaults.baseURL,
+      });
+
+      if (isErrorWithCode?.(err)) {
+        if (err.code === statusCodes.SIGN_IN_CANCELLED) {
+          setGoogleLoading(false);
+          return;
+        }
+
+        if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          setError('Google Play Services indisponivel ou desatualizado neste aparelho.');
+          setGoogleLoading(false);
+          return;
+        }
+      }
+
+      const apiMessage = err.response?.data?.message;
+      const readableApiMessage = Array.isArray(apiMessage)
+        ? apiMessage.join(' ')
+        : apiMessage;
+
+      if (readableApiMessage) {
+        setError(readableApiMessage);
+      } else if (err.message === 'Network Error') {
+        setError(
+          `Nao consegui acessar o backend em ${api.defaults.baseURL}. Confirme se a API esta rodando e se o celular esta na mesma rede.`
+        );
+      } else if (
+        String(err.code || '').includes('DEVELOPER_ERROR') ||
+        String(err.message || '').includes('DEVELOPER_ERROR') ||
+        String(err.message || '').includes('10:')
+      ) {
+        setError(
+          'Erro Google DEVELOPER_ERROR: confira se o Android OAuth Client usa package com.musion.app e o SHA-1 da keystore da EAS.'
+        );
+      } else if (err.code) {
+        setError(`Erro Google (${err.code}): ${err.message || 'falha ao autenticar.'}`);
+      } else {
+        setError(err.message || 'Nao foi possivel entrar com Google.');
+      }
+      setGoogleLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -139,18 +276,7 @@ export function LoginScreen({ navigation }) {
       const response = await api.post(url, payload);
 
       if (isLogin) {
-        const token = response.data.access_token;
-
-        await AsyncStorage.setItem('musion_token', token);
-
-        const avatarToSave = response.data.user?.avatarUrl || response.data.avatarUrl || '';
-        if (avatarToSave) {
-          await AsyncStorage.setItem('musion_user_avatar', avatarToSave);
-        }
-
-        preloadTrendingData({ force: true }).catch(() => {});
-        setSuccess('Login bem-sucedido!');
-        navigation.replace('Feed');
+        await completeLogin(response.data);
       } else {
         setSuccess('Cadastro realizado! Faca o login.');
         setAuthMode('login');
@@ -158,8 +284,26 @@ export function LoginScreen({ navigation }) {
       }
     } catch (err) {
       setSuccess('');
-      setError(err.response?.data?.message || 'Erro ao processar a requisicao.');
-      console.error('Erro no login:', err);
+      console.error('Erro no login:', {
+        message: err.message,
+        response: err.response?.data,
+        baseURL: api.defaults.baseURL,
+      });
+
+      const apiMessage = err.response?.data?.message;
+      const readableApiMessage = Array.isArray(apiMessage)
+        ? apiMessage.join(' ')
+        : apiMessage;
+
+      if (readableApiMessage) {
+        setError(readableApiMessage);
+      } else if (err.message === 'Network Error') {
+        setError(
+          `Nao consegui acessar o backend em ${api.defaults.baseURL}. Confirme se a API esta rodando e se o celular esta na mesma rede.`
+        );
+      } else {
+        setError(err.message || 'Erro ao processar a requisicao.');
+      }
     } finally {
       setLoading(false);
     }
@@ -238,15 +382,29 @@ export function LoginScreen({ navigation }) {
           {!isForgotPassword && (
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Senha</Text>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder=""
-                placeholderTextColor="#404040"
-                secureTextEntry
-                editable={!loading}
-              />
+              <View style={styles.passwordInputWrapper}>
+                <TextInput
+                  style={styles.passwordInput}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder=""
+                  placeholderTextColor="#404040"
+                  secureTextEntry={!showPassword}
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.passwordEyeButton}
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  disabled={loading}
+                  activeOpacity={0.75}
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -267,15 +425,29 @@ export function LoginScreen({ navigation }) {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Nova senha</Text>
-                <TextInput
-                  style={styles.input}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  placeholder=""
-                  placeholderTextColor="#404040"
-                  secureTextEntry
-                  editable={!loading}
-                />
+                <View style={styles.passwordInputWrapper}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder=""
+                    placeholderTextColor="#404040"
+                    secureTextEntry={!showNewPassword}
+                    editable={!loading}
+                  />
+                  <TouchableOpacity
+                    style={styles.passwordEyeButton}
+                    onPress={() => setShowNewPassword((prev) => !prev)}
+                    disabled={loading}
+                    activeOpacity={0.75}
+                  >
+                    <Ionicons
+                      name={showNewPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color={COLORS.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
             </>
           )}
@@ -299,6 +471,25 @@ export function LoginScreen({ navigation }) {
               </Text>
             )}
           </TouchableOpacity>
+
+          {!isForgotPassword && (
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={handleGoogleLogin}
+              disabled={loading || googleLoading}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color={COLORS.textMain} />
+              ) : (
+                <>
+                  <View style={styles.googleMark}>
+                    <Text style={styles.googleMarkText}>G</Text>
+                  </View>
+                  <Text style={styles.googleButtonText}>Entrar com Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
           {isLogin && (
             <TouchableOpacity
@@ -409,6 +600,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
+  passwordInputWrapper: {
+    width: '100%',
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  passwordInput: {
+    flex: 1,
+    height: '100%',
+    color: COLORS.textMain,
+    paddingLeft: 20,
+    paddingRight: 8,
+    fontSize: 16,
+  },
+  passwordEyeButton: {
+    width: 48,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   inputWithIconWrapper: {
     width: '100%',
     height: 50,
@@ -454,6 +669,37 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  googleButton: {
+    width: '100%',
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginTop: 12,
+    backgroundColor: 'transparent',
+  },
+  googleMark: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: COLORS.textMain,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  googleMarkText: {
+    color: '#18191D',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  googleButtonText: {
+    color: COLORS.textMain,
+    fontSize: 15,
+    fontWeight: '700',
   },
   forgotWrapper: {
     marginTop: 18,

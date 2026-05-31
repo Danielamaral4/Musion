@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Documento de Apresentacao - Musion</title>
+    <style>
+      :root {
+        --bg: #18191d;
+        --panel: #121317;
+        --text: #dee0e8;
+        --muted: rgba(222, 224, 232, 0.68);
+        --soft: rgba(222, 224, 232, 0.12);
+        --line: rgba(222, 224, 232, 0.28);
+        --red: #f20505;
+        --yellow: #f2cb05;
+        --green: #37a603;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: radial-gradient(circle at 50% 0%, rgba(222, 224, 232, 0.15), transparent 34%),
+          var(--bg);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.55;
+      }
+
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 48px 24px 72px;
+      }
+
+      .hero {
+        border: 1.5px solid var(--line);
+        border-radius: 18px;
+        background: rgba(18, 19, 23, 0.92);
+        box-shadow: 0 0 42px rgba(222, 224, 232, 0.16);
+        padding: 34px;
+        overflow: hidden;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 28px;
+      }
+
+      .brand img {
+        width: 190px;
+        max-width: 60%;
+        height: auto;
+        display: block;
+      }
+
+      .badge {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 42px;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 18px;
+        margin: 18px 0 0;
+        max-width: 760px;
+      }
+
+      .color-line {
+        height: 4px;
+        width: 220px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--red), var(--yellow), var(--green));
+        margin-top: 24px;
+      }
+
+      .members {
+        margin-top: 28px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .member-line {
+        min-height: 42px;
+        border: 1px dashed rgba(222, 224, 232, 0.3);
+        border-radius: 10px;
+        color: rgba(222, 224, 232, 0.46);
+        padding: 10px 12px;
+      }
+
+      section {
+        margin-top: 30px;
+        border: 1px solid rgba(222, 224, 232, 0.16);
+        border-radius: 14px;
+        background: rgba(18, 19, 23, 0.74);
+        padding: 26px;
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 24px;
+      }
+
+      h3 {
+        margin: 22px 0 10px;
+        font-size: 18px;
+      }
+
+      p {
+        margin: 10px 0;
+        color: var(--muted);
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 20px;
+        color: var(--muted);
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        border: 1.5px solid rgba(222, 224, 232, 0.28);
+        border-radius: 10px;
+        background: var(--bg);
+        box-shadow: 0 0 24px rgba(222, 224, 232, 0.1);
+        padding: 16px;
+      }
+
+      .card strong {
+        display: block;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+
+      .status {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 5px 10px;
+        background: rgba(55, 166, 3, 0.16);
+        color: #9fe77d;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 10px;
+      }
+
+      .table th,
+      .table td {
+        border-bottom: 1px solid rgba(222, 224, 232, 0.12);
+        padding: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .table th {
+        color: var(--text);
+        background: rgba(222, 224, 232, 0.06);
+      }
+
+      .table td {
+        color: var(--muted);
+      }
+
+      .footer {
+        color: rgba(222, 224, 232, 0.42);
+        text-align: center;
+        margin-top: 28px;
+        font-size: 13px;
+      }
+
+      @media print {
+        body {
+          background: #18191d;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .page {
+          padding: 24px;
+        }
+
+        section,
+        .hero {
+          break-inside: avoid;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .grid,
+        .members {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 34px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div class="brand">
+          <img src="../assets/musionlogo.png" alt="Musion" />
+          <span class="badge">ExpoTech 2026</span>
+        </div>
+        <h1>Documento de Apresentacao do Projeto</h1>
+        <p class="subtitle">
+          Aplicativo mobile de reviews musicais com rede social, recomendacoes,
+          sensor do celular, backend proprio, banco de dados, QA e CI/CD.
+        </p>
+        <div class="color-line"></div>
+
+        <h3>Integrantes</h3>
+        <div class="members">
+          <div class="member-line">Nome - RM:</div>
+          <div class="member-line">Nome - RM:</div>
+          <div class="member-line">Nome - RM:</div>
+          <div class="member-line">Nome - RM:</div>
+          <div class="member-line">Nome - RM:</div>
+        </div>
+      </header>
+
+      <section>
+        <h2>1. Visao Geral</h2>
+        <p>
+          O Musion e um aplicativo mobile para usuarios que gostam de avaliar
+          albuns, escrever reviews e descobrir musica por meio da comunidade.
+          Ele cria uma camada social sobre o consumo musical, reunindo feed,
+          perfil, comentarios, curtidas, chat, notificacoes, compartilhamento e
+          recomendacoes personalizadas.
+        </p>
+        <p>
+          O problema resolvido e a falta de um espaco focado em reviews
+          musicais dentro das plataformas tradicionais de streaming. O Musion
+          organiza opinioes por usuario, album e comunidade.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Funcionalidades Principais</h2>
+        <div class="grid">
+          <div class="card"><strong>Autenticacao</strong>Login, cadastro, Google Sign-In, mostrar senha e redefinicao por email.</div>
+          <div class="card"><strong>Reviews</strong>Busca de album, criacao/edicao de review, nota, texto e publicacao no feed.</div>
+          <div class="card"><strong>Album Page</strong>Capa, metadados, faixas, preview, link para Spotify e reviews da comunidade.</div>
+          <div class="card"><strong>Trending</strong>Albuns em alta, lancamentos da semana e recomendacoes personalizadas.</div>
+          <div class="card"><strong>Social</strong>Perfil, seguidores, comentarios, curtidas, chat e notificacoes.</div>
+          <div class="card"><strong>Seguranca</strong>Denuncia, bloqueio, usuarios bloqueados, termos, privacidade e exclusao de conta.</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Arquitetura</h2>
+        <p>
+          A solucao e dividida entre app mobile e backend. O mobile foi
+          desenvolvido em React Native com Expo. A API foi desenvolvida em
+          NestJS, usando Prisma como ORM e MySQL como banco SQL.
+        </p>
+        <table class="table">
+          <tr>
+            <th>Camada</th>
+            <th>Tecnologias</th>
+            <th>Responsabilidade</th>
+          </tr>
+          <tr>
+            <td>Mobile</td>
+            <td>React Native, Expo, React Navigation, Axios, AsyncStorage</td>
+            <td>Interface, navegacao, consumo da API, experiencia mobile e sensor.</td>
+          </tr>
+          <tr>
+            <td>Backend</td>
+            <td>NestJS, Prisma, JWT, bcrypt, Nodemailer</td>
+            <td>Autenticacao, regras de negocio, dados, moderacao e integracoes.</td>
+          </tr>
+          <tr>
+            <td>Banco</td>
+            <td>MySQL</td>
+            <td>Persistencia de usuarios, reviews, comentarios, mensagens e denuncias.</td>
+          </tr>
+          <tr>
+            <td>Integracoes</td>
+            <td>Spotify, Last.fm, Deezer/fallback, Cloudinary, SMTP, Google</td>
+            <td>Catalogo musical, recomendacoes, previews, imagens e login.</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>4. Atendimento aos Requisitos do PDF</h2>
+        <table class="table">
+          <tr>
+            <th>Requisito</th>
+            <th>Status</th>
+            <th>Evidencia no Musion</th>
+          </tr>
+          <tr>
+            <td>Planejamento de requisitos</td>
+            <td><span class="status">Atendido</span></td>
+            <td>Publico-alvo, problema, solucao e funcionalidades documentadas.</td>
+          </tr>
+          <tr>
+            <td>Aplicacao mobile em React Native</td>
+            <td><span class="status">Atendido</span></td>
+            <td>Aplicativo hibrido em React Native/Expo com APK gerada via EAS.</td>
+          </tr>
+          <tr>
+            <td>Banco de dados</td>
+            <td><span class="status">Atendido</span></td>
+            <td>MySQL com Prisma e modelos para usuarios, reviews, chat, notificacoes e denuncias.</td>
+          </tr>
+          <tr>
+            <td>IoT / sensores</td>
+            <td><span class="status">Atendido</span></td>
+            <td>Acelerometro do celular controla a nota da review em tempo real.</td>
+          </tr>
+          <tr>
+            <td>Big Data e IA</td>
+            <td><span class="status">Atendido</span></td>
+            <td>Motor de recomendacao via API cruza dados internos, comunidade, Spotify e Last.fm.</td>
+          </tr>
+          <tr>
+            <td>Quality Assurance</td>
+            <td><span class="status">Atendido</span></td>
+            <td>Testes Jest, build da API, validacao mobile e plano JMeter.</td>
+          </tr>
+          <tr>
+            <td>CI/CD</td>
+            <td><span class="status">Atendido</span></td>
+            <td>GitHub Actions para validacao e workflow EAS para build Android.</td>
+          </tr>
+          <tr>
+            <td>Apresentacao final</td>
+            <td><span class="status">Atendido</span></td>
+            <td>Aplicacao funcional com roteiro, demonstracao e explicacao tecnica.</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>5. Big Data, IA e Recomendacoes</h2>
+        <p>
+          O Musion utiliza uma abordagem de recomendacao hibrida. A API analisa
+          reviews recentes, notas altas, albuns ja avaliados, atividade da
+          comunidade e dados externos de Spotify e Last.fm. O objetivo e gerar
+          sugestoes mais coerentes e reduzir repeticao.
+        </p>
+        <p>
+          Essa camada funciona como uma API inteligente de insights musicais,
+          consumida pela aba Trending do aplicativo.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Sensor Mobile</h2>
+        <p>
+          Na tela de adicionar review, o usuario pode ativar o controle por
+          sensor. A inclinacao do celular, capturada pelo acelerometro, move o
+          slider de nota. Isso demonstra uso de dados de hardware em tempo real
+          dentro da aplicacao mobile.
+        </p>
+      </section>
+
+      <section>
+        <h2>7. QA e CI/CD</h2>
+        <ul>
+          <li>Testes unitarios no backend com Jest.</li>
+          <li>Build da API NestJS.</li>
+          <li>Validacao JSX do app mobile.</li>
+          <li>Plano JMeter em <code>api/tests/performance/musion-api.jmx</code>.</li>
+          <li>GitHub Actions para validacoes automaticas.</li>
+          <li>Workflow EAS para build Android preview.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>8. Conclusao</h2>
+        <p>
+          O Musion entrega uma experiencia mobile completa e integrada. O app
+          combina reviews musicais, descoberta, comunidade, chat, moderacao,
+          recomendacoes, sensor do celular, backend proprio, banco de dados,
+          QA e CI/CD, atendendo aos principais criterios do projeto do semestre.
+        </p>
+      </section>
+
+      <p class="footer">Musion - documento de apoio para apresentacao academica.</p>
+    </main>
+  </body>
+</html>

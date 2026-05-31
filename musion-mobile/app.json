@@ -2,7 +2,7 @@
   "expo": {
     "name": "Musion",
     "slug": "musion",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "musion",
@@ -17,20 +17,23 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "O Musion usa suas fotos apenas para escolher uma imagem de perfil.",
-          "cameraPermission": false,
+          "photosPermission": "O Musion usa suas fotos para escolher imagem de perfil.",
+          "cameraPermission": "O Musion usa a camera quando voce quiser tirar uma foto de perfil.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin",
+      "./plugins/withAndroidCleartext"
     ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.musion.app",
-      "buildNumber": "1"
+      "buildNumber": "3"
     },
     "android": {
       "package": "com.musion.app",
-      "versionCode": 1,
+      "versionCode": 3,
+      "usesCleartextTraffic": true,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ],
@@ -39,10 +42,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#18191D"
       },
-      "edgeToEdgeEnabled": false
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a0031186-de42-4040-ac43-3fccbb8380ca"
+      }
     }
   }
 }

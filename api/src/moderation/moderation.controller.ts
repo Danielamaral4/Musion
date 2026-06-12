@@ -9,12 +9,12 @@ import {
   Post,
   Query,
   Request,
-  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from '../auth/admin.guard';
 import { CreateReportDto } from '../dto/create-report.dto';
 import { ModerationService } from './moderation.service';
 
@@ -45,29 +45,17 @@ export class ModerationController {
   }
 
   @Get('admin/reports')
-  listReports(@Request() req, @Query('status') status = 'PENDING') {
-    this.assertAdmin(req.user.id);
+  @UseGuards(AdminGuard)
+  listReports(@Query('status') status = 'PENDING') {
     return this.moderationService.listReports(status);
   }
 
   @Patch('admin/reports/:id/status')
+  @UseGuards(AdminGuard)
   updateReportStatus(
-    @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Body('status') status: string
   ) {
-    this.assertAdmin(req.user.id);
     return this.moderationService.updateReportStatus(id, status);
-  }
-
-  private assertAdmin(userId: number) {
-    const adminIds = String(process.env.MODERATION_ADMIN_USER_IDS || '')
-      .split(',')
-      .map((id) => Number(id.trim()))
-      .filter((id) => Number.isFinite(id));
-
-    if (!adminIds.includes(userId)) {
-      throw new UnauthorizedException('Acesso restrito a moderadores.');
-    }
   }
 }

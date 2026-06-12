@@ -5,7 +5,7 @@
   margin: 0 auto;
   padding-top: 2rem;
   color: #fff;
-  font-family: sans-serif; /* Garante a fonte padrão */
+  font-family: inherit;
 }
 
 .feed-title {
@@ -97,13 +97,13 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.38rem;
   color: #fff;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
   border-bottom-right-radius: 6px;
@@ -146,3 +146,30 @@
 .rating-green { background-color: #1DB954; color: #fff; }
 .rating-yellow { background-color: #F59B23; color: #fff; }
 .rating-red { background-color: #E91429; color: #fff; }
+
+.feed-rating-box {
+  font-family: "Google Sans", "Google Sans Text", "Product Sans", Roboto, "Segoe UI", Arial, sans-serif !important;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0;
+  line-height: 1 !important;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.feed-container .review-rating-square {
+  width: 56px;
+  height: 56px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  font-family: "Google Sans", "Google Sans Text", "Product Sans", Roboto, "Segoe UI", Arial, sans-serif !important;
+  font-size: 2.08rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0;
+  line-height: 1 !important;
+  box-sizing: border-box;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

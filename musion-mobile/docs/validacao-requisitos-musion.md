@@ -18,6 +18,8 @@ Evidencias:
 - O problema e definido: plataformas de streaming nao organizam reviews detalhadas e interacao social por album.
 - A solucao e um app mobile social para reviews musicais.
 - O relatorio tecnico descreve arquitetura, funcionalidades e evolucoes.
+- O projeto possui prototipagem no Figma com baixa fidelidade, alta fidelidade e identidade visual:
+  https://www.figma.com/design/3vxc6zix8EpASANx0atm8g/Musion?node-id=0-1&t=qaMMQ94OXhc6kUZ4-1
 
 Funcionalidades planejadas e implementadas:
 

@@ -460,7 +460,7 @@ export function AddReviewScreen({ navigation, route }) {
               disabled={isSubmitting}
             >
               <Text style={styles.submitButtonText}>
-                {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Publicar Review')}
+                {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar alterações' : 'Publicar review')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -494,7 +494,7 @@ export function AddReviewScreen({ navigation, route }) {
             <Ionicons name={step === 2 && !isEditing && !isReviewingAlbum ? "chevron-back" : "arrow-back"} size={24} color="#DEE0E8" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {step === 1 ? 'Nova Review' : (isEditing ? 'Editar Review' : 'Nova Review')}
+            {step === 1 ? 'Nova review' : (isEditing ? 'Editar review' : 'Nova review')}
           </Text>
           <View style={{ width: 24 }} />
         </View>

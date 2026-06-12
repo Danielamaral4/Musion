@@ -18,7 +18,7 @@ export class DashboardService {
   // ============================================================
   // 1. DADOS DO DASHBOARD (AGORA COM 3 BLOCOs DE RECOMENDAÇÃO)
   // ============================================================
-  async getDashboardData(userId: number) {
+  async getDashboardData(userId: number | null) {
     const popularRaw = await this.prisma.review.groupBy({
       by: ['albumId', 'albumName', 'albumCover', 'albumArtist'],
       _count: { albumId: true },
@@ -605,12 +605,12 @@ export class DashboardService {
     ] = await Promise.all([
       Promise.all(
         relatedArtists
-          .slice(0, 8)
+          .slice(0, 5)
           .map((artist) => this.spotifyService.getArtistAlbums(artist.id))
       ),
       Promise.all(
         lastfmArtists
-          .slice(0, 10)
+          .slice(0, 6)
           .map(async (artist) => {
             const albums = await this.spotifyService.searchAlbumsByArtistName(artist.name, 10);
             return albums.map((album) => ({
@@ -621,12 +621,12 @@ export class DashboardService {
       ),
       Promise.all(
         genres
-          .slice(0, 4)
+          .slice(0, 3)
           .map((genre) => this.spotifyService.searchAlbumsByGenre(genre))
       ),
       Promise.all(
         tagQueries
-          .slice(0, 5)
+          .slice(0, 3)
           .map((tag) => this.spotifyService.searchAlbums(tag))
       ),
       this.getCommunityRecommendationAlbums(userId, targetReview, artistName, lastfmArtistNames),

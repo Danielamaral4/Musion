@@ -81,13 +81,13 @@
 }
 
 .review-rating-square {
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 3px;
-  font-size: 1.8rem;
+  font-size: 2.08rem;
   font-weight: bold;
   line-height: 1;
   flex-shrink: 0;
@@ -229,6 +229,7 @@
   height: 200px;
   border-radius: 8px;
   object-fit: cover;
+  cursor: zoom-in;
 }
 
 .album-header-info {
@@ -271,14 +272,72 @@
   align-items: center;
 }
 
+.clickable-review-body {
+  cursor: pointer;
+}
+
+.clickable-review-body:hover .review-text {
+  color: #fff;
+}
+
+.review-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.review-icon-action span {
+  font-size: 0.95rem;
+}
+
+.review-action-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-right: 110px;
+}
+
+.review-action-row button {
+  background: transparent;
+  color: #55565C;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 6px 0;
+}
+
+.review-action-row button:hover {
+  color: #DEE0E8;
+}
+
+.album-review-button,
+.track-preview-btn {
+  border: 1.5px solid #dee0e831;
+  border-radius: 18px;
+  background: transparent;
+  color: #dee0e8;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.album-review-button:hover,
+.track-preview-btn:hover {
+  border-color: #dee0e8;
+}
+
 .album-average-rating-square {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   border-radius: 3px;
-  font-size: 1.8rem;
+  font-size: 2.08rem;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -324,4 +383,128 @@
 .track-duration {
   color: #888;
   font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 132px;
+}
+
+.cover-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+.cover-lightbox img {
+  width: min(78vh, 82vw);
+  max-width: 760px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 30px 110px rgba(222, 224, 232, 0.32);
+  cursor: default;
+}
+
+.album-reviews-section .review-card {
+  padding-bottom: 4.1rem;
+}
+
+.album-reviews-section .review-card-body {
+  padding-right: 70px;
+}
+
+.album-reviews-section .review-card-body .review-rating-square {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.album-reviews-section .review-card .review-action-row {
+  position: absolute;
+  right: 86px;
+  bottom: 15px;
+  padding-right: 0;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .album-reviews-section .review-card-body {
+    padding-right: 0;
+  }
+
+  .album-reviews-section .review-card-body .review-rating-square {
+    position: static;
+    margin-top: 0.5rem;
+  }
+}
+
+.album-reviews-section .review-card {
+  padding-bottom: 4.35rem !important;
+}
+
+.album-reviews-section .review-card .review-action-row {
+  position: absolute !important;
+  right: 78px !important;
+  bottom: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding-right: 0 !important;
+  z-index: 10;
+}
+
+.album-reviews-section .review-card .like-container {
+  right: 18px !important;
+  bottom: 22px !important;
+}
+
+.album-reviews-section .review-icon-action {
+  color: #55565C;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.album-reviews-section .review-icon-action span,
+.album-reviews-section .like-count {
+  color: #55565C;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-width: 12px;
+}
+
+.album-reviews-section .review-icon-action:hover {
+  color: #DEE0E8;
+  transform: scale(1.13);
+}
+
+.album-reviews-section .review-icon-action:hover span {
+  color: #DEE0E8;
+}
+
+.review-rating-square,
+.album-average-rating-square {
+  font-family: "Google Sans", "Google Sans Text", "Product Sans", Roboto, "Segoe UI", Arial, sans-serif !important;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0;
+  line-height: 1 !important;
+  box-sizing: border-box;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-preview-btn {
+  width: 72px;
+  min-width: 72px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }

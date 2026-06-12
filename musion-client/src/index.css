@@ -1,8 +1,10 @@
 /* src/index.css (Versão Limpa) */
 
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700;800&family=Roboto:wght@500;700&display=swap');
+
 body {
   margin: 0; /* Remove a margem padrão do navegador */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Google Sans", "Google Sans Text", "Product Sans", Roboto, "Segoe UI", Arial, sans-serif;
   padding: 0;
   background-color: #18191D; 
     
@@ -32,7 +34,344 @@ background-attachment: fixed;
   color: white;
 }
 
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
 /* Garante que o app ocupe o espaço */
 #root {
   min-height: 100vh;
+}
+
+.public-home {
+  min-height: 100vh;
+}
+
+.public-navbar {
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  border-bottom: 1px solid rgba(222, 224, 232, 0.08);
+  background: rgba(24, 25, 29, 0.74);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.public-logo img {
+  width: 150px;
+  height: auto;
+  display: block;
+}
+
+.public-navbar nav {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.public-navbar a {
+  color: #DEE0E8;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.public-register-link {
+  border: 1.5px solid #DEE0E8;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+}
+
+.public-content {
+  padding: 1.5rem 0 4rem;
+}
+
+.public-landing-content {
+  padding-top: 0;
+}
+
+.public-content > .album-page-container,
+.public-content > .profile-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+/* Public landing/nav redesign */
+.public-home {
+  font-family: inherit;
+}
+
+.public-navbar {
+  gap: 1.5rem;
+  border-bottom-color: rgba(222, 224, 232, 0.035);
+  background: rgba(24, 25, 29, 0.58);
+}
+
+.public-brand-search {
+  display: flex;
+  align-items: center;
+  gap: 1.35rem;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.public-brand-search .public-logo {
+  border: 0;
+  padding: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.public-navbar nav {
+  gap: 0.55rem;
+  flex-shrink: 0;
+  margin-left: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.public-navbar a {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  letter-spacing: 0.02em;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.public-navbar nav a:hover {
+  background: rgba(222, 224, 232, 0.08);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.public-register-link {
+  border-color: transparent;
+}
+
+.public-search-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, 38vw);
+  min-width: 260px;
+  z-index: 1;
+}
+
+.public-search-input {
+  width: 100%;
+  height: 46px;
+  box-sizing: border-box;
+  border: 1.5px solid rgba(222, 224, 232, 0.22);
+  border-radius: 999px;
+  background: rgba(24, 25, 29, 0.78);
+  color: #DEE0E8;
+  outline: none;
+  padding: 0 3.1rem 0 1.15rem;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 12px 30px rgba(222, 224, 232, 0.05);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.public-search-input::placeholder {
+  color: rgba(222, 224, 232, 0.42);
+}
+
+.public-search-input:focus {
+  border-color: rgba(222, 224, 232, 0.85);
+  box-shadow: 0 16px 42px rgba(222, 224, 232, 0.12);
+}
+
+.public-search-button {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 35px;
+  height: 35px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(222, 224, 232, 0.72);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.public-search-results {
+  position: absolute;
+  top: calc(100% + 0.7rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: rgba(24, 25, 29, 0.97);
+  border: 1.5px solid rgba(222, 224, 232, 0.18);
+  border-radius: 14px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.42), 0 12px 28px rgba(222, 224, 232, 0.08);
+  overflow: hidden;
+  padding: 0.55rem;
+}
+
+.public-results-section + .public-results-section {
+  border-top: 1px solid rgba(222, 224, 232, 0.08);
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+}
+
+.public-results-section h4 {
+  color: rgba(222, 224, 232, 0.48);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0.35rem 0.55rem 0.45rem;
+}
+
+.public-result-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #DEE0E8;
+  padding: 0.55rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.public-result-item:hover {
+  background: rgba(222, 224, 232, 0.075);
+}
+
+.public-result-item img {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.public-user-result img {
+  border-radius: 50%;
+}
+
+.public-album-result img {
+  border-radius: 8px;
+}
+
+.public-result-item span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.public-result-item strong,
+.public-result-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-result-item strong {
+  color: #DEE0E8;
+  font-size: 0.95rem;
+}
+
+.public-result-item small,
+.public-search-loading {
+  color: rgba(222, 224, 232, 0.52);
+  font-size: 0.85rem;
+}
+
+.public-search-loading {
+  padding: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .public-navbar {
+    height: auto;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  .public-brand-search {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .public-search-container {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .public-navbar nav {
+    justify-content: center;
+  }
+}
+
+body .dash-rating-square,
+body .public-featured-rating,
+body .review-rating-square,
+body .album-average-rating-square,
+body .feed-rating-box,
+body .rating-value-box {
+  font-family: "Google Sans", "Google Sans Text", "Product Sans", Roboto, "Segoe UI", Arial, sans-serif !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+  font-weight: 700 !important;
+  font-synthesis-weight: none;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body .rating-value-box .rating-value {
+  line-height: 1 !important;
+}
+
+body .section-title,
+body .public-featured-kicker,
+body .public-featured-title-row h1,
+body .public-featured-title-row p,
+body .public-copy-section h2,
+body .dash-title,
+body .dash-artist,
+body .album-title,
+body .album-artists,
+body .tracklist-section h3,
+body .album-reviews-section h3,
+body .post-title-row h1,
+body .post-title-row p,
+body .review-album-name,
+body .feed-album-title,
+body .feed-album-artist,
+body .album-result-name,
+body .album-result-artist,
+body .review-form-info h2,
+body .review-form-info .artist-name {
+  font-family: 'Josefin Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }

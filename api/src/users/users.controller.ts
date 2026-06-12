@@ -20,6 +20,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from '../auth/admin.guard';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { DeleteAccountDto } from '../dto/delete-account.dto';
@@ -32,6 +33,16 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly cloudinaryService: CloudinaryService, 
   ) {}
+
+  @Get('public/search')
+  async publicSearch(@Query('q') query: string) {
+    return this.usersService.searchUsers(query, null);
+  }
+
+  @Get('public/profile/:id')
+  async getPublicProfile(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findProfile(id, null);
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('search')
@@ -88,6 +99,24 @@ export class UsersController {
     return this.usersService.updateAvatar(req.user.id, avatarUrl);
   }
   // --- FIM ---
+
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
+  @Get('admin/users')
+  async listUsersForAdmin(
+    @Query('q') query = '',
+    @Query('role') role = 'ALL'
+  ) {
+    return this.usersService.listUsersForAdmin(query, role);
+  }
+
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
+  @Patch('admin/users/:id/role')
+  async updateUserRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('role') role: string
+  ) {
+    return this.usersService.updateUserRole(id, role);
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')

@@ -4,10 +4,11 @@ import './ReviewModal.css';
 
 const NO_COVER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-function ReviewModal({ onClose, onReviewSaved, reviewToEdit }) {
+function ReviewModal({ onClose, onReviewSaved, reviewToEdit, initialAlbum }) {
   
   const isEditing = !!reviewToEdit;
-  const [step, setStep] = useState(isEditing ? 2 : 1);
+  const hasInitialAlbum = !!initialAlbum && !isEditing;
+  const [step, setStep] = useState(isEditing || hasInitialAlbum ? 2 : 1);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -50,9 +51,32 @@ function ReviewModal({ onClose, onReviewSaved, reviewToEdit }) {
     }
   }, [isEditing, reviewToEdit]);
 
+  useEffect(() => {
+    if (!hasInitialAlbum) return;
+
+    setSelectedAlbum({
+      id: initialAlbum.spotifyId || initialAlbum.id || initialAlbum.albumId,
+      spotifyId: initialAlbum.spotifyId || initialAlbum.id || initialAlbum.albumId,
+      name: initialAlbum.name || initialAlbum.albumName,
+      artistName:
+        initialAlbum.artistName ||
+        initialAlbum.albumArtist ||
+        initialAlbum.artists?.map((artist) => artist.name).join(', ') ||
+        'Artista desconhecido',
+      imageUrl:
+        initialAlbum.imageUrl ||
+        initialAlbum.albumCover ||
+        initialAlbum.images?.[0]?.url ||
+        NO_COVER,
+      releaseDate: initialAlbum.releaseDate || initialAlbum.release_date || initialAlbum.releaseYear || '',
+      totalTracks: initialAlbum.totalTracks || initialAlbum.total_tracks || 0,
+      totalDurationMin: initialAlbum.totalDurationMin || 0,
+    });
+  }, [hasInitialAlbum, initialAlbum]);
+
   // --- BUSCA ---
   useEffect(() => {
-    if (isEditing) return;
+    if (isEditing || hasInitialAlbum) return;
     if (searchQuery.trim() === '') { setSearchResults([]); return; }
 
     setIsSearching(true);
@@ -63,7 +87,7 @@ function ReviewModal({ onClose, onReviewSaved, reviewToEdit }) {
         .finally(() => setIsSearching(false));
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, isEditing]);
+  }, [searchQuery, isEditing, hasInitialAlbum]);
 
   // --- PROCESSAMENTO DADOS ---
   const processAlbumData = (data) => {
@@ -80,7 +104,7 @@ function ReviewModal({ onClose, onReviewSaved, reviewToEdit }) {
     return {
         id: data.id,
         name: data.name || "",
-        artistName: data.artistName || data.artists?.[0]?.name || "Artista Desconhecido",
+        artistName: data.artistName || data.artists?.[0]?.name || "Artista desconhecido",
         imageUrl: data.imageUrl || data.images?.[0]?.url || NO_COVER,
         releaseDate: data.releaseDate || data.release_date || "",
         totalTracks: data.totalTracks || data.total_tracks || tracksRaw.length || 0,
@@ -194,7 +218,7 @@ albumId: selectedAlbum.id,
   // --- RENDERIZAÇÃO ---
   const renderSearchStep = () => (
     <div className="review-modal-step-1">
-      <h3>Novo Review</h3>
+      <h3>Nova review</h3>
       <div className="search-bar-modal">
         <input autoFocus type="text" placeholder="Qual álbum você ouviu?" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
       </div>
@@ -231,7 +255,7 @@ albumId: selectedAlbum.id,
 
     return (
       <div className="review-modal-step-2">
-        <h3>{isEditing ? 'Editar Review' : 'Nova Review'}</h3>
+        <h3>{isEditing ? 'Editar review' : 'Nova review'}</h3>
         
         <div className="review-form-all">
         <div className="review-form-header">
@@ -282,7 +306,7 @@ albumId: selectedAlbum.id,
           {submitError && <p className="error-message">{submitError}</p>}
           
           <button className="review-form-submit" onClick={handleSubmitReview} disabled={isSubmitting}>
-            {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Publicar Review')}
+            {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar alterações' : 'Publicar review')}
           </button>
         </div>
         </div>
@@ -296,7 +320,7 @@ albumId: selectedAlbum.id,
         <button className="review-modal-close" onClick={onClose} title="Fechar">
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-        {!isEditing && step === 2 && (
+        {!isEditing && !hasInitialAlbum && step === 2 && (
             <button className="review-modal-back-btn" onClick={() => setStep(1)} title="Voltar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>

@@ -160,8 +160,8 @@ export default function PostScreen({ route, navigation }) {
 
   const confirmDeleteReview = () => {
     Alert.alert(
-      'Excluir Review',
-      'Tem certeza que deseja excluir esta review? Essa ação não pode ser desfeita.',
+      'Excluir review',
+      'Tem certeza de que deseja excluir esta review? Essa ação não pode ser desfeita.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -175,14 +175,14 @@ export default function PostScreen({ route, navigation }) {
 
   const handleReviewOptions = () => {
     if (isMyReview) {
-      Alert.alert('Opções do Review', 'O que você deseja fazer?', [
+      Alert.alert('Opções da review', 'O que você deseja fazer?', [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Compartilhar como Story',
+          text: 'Compartilhar como story',
           onPress: handleShareReview,
         },
         {
-          text: 'Excluir Review',
+          text: 'Excluir review',
           style: 'destructive',
           onPress: confirmDeleteReview,
         },
@@ -190,14 +190,14 @@ export default function PostScreen({ route, navigation }) {
       return;
     }
 
-    Alert.alert('Opções do Review', 'O que você deseja fazer?', [
+    Alert.alert('Opções da review', 'O que você deseja fazer?', [
       { text: 'Cancelar', style: 'cancel' },
       {
-        text: 'Compartilhar como Story',
+        text: 'Compartilhar como story',
         onPress: handleShareReview,
       },
       {
-        text: 'Denunciar Review',
+        text: 'Denunciar review',
         onPress: () =>
           openReportPrompt({
             targetType: 'REVIEW',

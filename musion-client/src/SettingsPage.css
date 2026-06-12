@@ -1,0 +1,114 @@
+.settings-page {
+  max-width: 760px;
+  margin: 0 auto;
+  color: #dee0e8;
+}
+
+.settings-page h2 {
+  text-align: left;
+}
+
+.settings-card {
+  border: 1.5px solid #dee0e831;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+  background: #18191d;
+  box-shadow: 0 10px 24px #dee0e818;
+}
+
+.settings-card h3 {
+  margin-top: 0;
+}
+
+.settings-card form,
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-card input {
+  border: 1.5px solid #dee0e831;
+  background: transparent;
+  color: #dee0e8;
+  border-radius: 10px;
+  padding: 12px;
+  outline: none;
+}
+
+.settings-card button,
+.settings-logout,
+.blocked-row button {
+  border: 0;
+  border-radius: 18px;
+  background: #dee0e8;
+  color: #18191d;
+  font-weight: 800;
+  padding: 11px 16px;
+  cursor: pointer;
+}
+
+.settings-card a {
+  color: #dee0e8;
+  text-decoration: none;
+  border-bottom: 1px solid #dee0e831;
+  padding-bottom: 10px;
+}
+
+.settings-card.danger {
+  border-color: rgba(242, 5, 5, 0.38);
+}
+
+.settings-card.danger button {
+  background: #f20505;
+  color: white;
+}
+
+.settings-logout {
+  width: 100%;
+}
+
+.settings-message {
+  color: #8ee26b;
+}
+
+.settings-error {
+  color: #ff7777;
+}
+
+.settings-muted {
+  color: rgba(222, 224, 232, 0.55);
+}
+
+.blocked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blocked-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px solid #dee0e831;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.blocked-row img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.blocked-row span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.blocked-row small {
+  color: rgba(222, 224, 232, 0.55);
+}

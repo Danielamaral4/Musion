@@ -18,7 +18,7 @@
         "expo-image-picker",
         {
           "photosPermission": "O Musion usa suas fotos para escolher imagem de perfil.",
-          "cameraPermission": "O Musion usa a camera quando voce quiser tirar uma foto de perfil.",
+          "cameraPermission": "O Musion usa a câmera quando você quiser tirar uma foto de perfil.",
           "microphonePermission": false
         }
       ],

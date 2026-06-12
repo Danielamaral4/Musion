@@ -3,14 +3,11 @@ import {
   Controller,
   Get,
   Query,
-  UseGuards,
   Param,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport'; 
 import { SpotifyService } from './spotify.service';
 
 @Controller('spotify')
-@UseGuards(AuthGuard('jwt')) 
 export class SpotifyController {
   constructor(private readonly spotifyService: SpotifyService) {}
 

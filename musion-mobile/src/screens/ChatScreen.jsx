@@ -22,7 +22,7 @@ import api from '../services/api';
 
 const DEFAULT_AVATAR = 'https://i.stack.imgur.com/l60Hf.png';
 
-const getUserName = (user) => user?.displayName || user?.username || 'Usuario';
+const getUserName = (user) => user?.displayName || user?.username || 'Usuário';
 
 const formatTime = (value) => {
   if (!value) return '';
@@ -225,7 +225,7 @@ export default function ChatScreen({ route }) {
 
           {lastMessage ? (
             <Text style={styles.previewText} numberOfLines={1}>
-              {lastMessage.isMine ? 'Voce: ' : ''}
+              {lastMessage.isMine ? 'Você: ' : ''}
               {lastMessage.text}
             </Text>
           ) : null}
@@ -383,7 +383,7 @@ export default function ChatScreen({ route }) {
           <Ionicons name="search" size={18} color="rgba(222, 224, 232, 0.5)" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar usuario..."
+            placeholder="Buscar usuário..."
             placeholderTextColor="rgba(222, 224, 232, 0.38)"
             value={search}
             onChangeText={setSearch}
@@ -416,8 +416,8 @@ export default function ChatScreen({ route }) {
             ListEmptyComponent={
               <Text style={styles.emptyText}>
                 {search.trim()
-                  ? 'Nenhum usuario encontrado.'
-                  : 'Busque um usuario para iniciar uma conversa.'}
+                  ? 'Nenhum usuário encontrado.'
+                  : 'Busque um usuário para iniciar uma conversa.'}
               </Text>
             }
           />

@@ -49,6 +49,56 @@ export class ReviewsService {
   }
 
   // Atualiza review (apenas se o usuário for dono)
+  async findOneById(id: number, currentUserId: number) {
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { likes: true, comments: true } },
+        likes: { where: { userId: currentUserId }, select: { userId: true } },
+        user: {
+          select: { id: true, username: true, displayName: true, avatarUrl: true },
+        },
+      },
+    });
+
+    if (!review) throw new NotFoundException('Review nao encontrada');
+
+    const isBlocked = await this.moderationService.isBlockedBetween(
+      currentUserId,
+      review.userId,
+    );
+
+    if (isBlocked) {
+      throw new NotFoundException('Review nao encontrada');
+    }
+
+    return {
+      reviewId: review.id,
+      id: review.id,
+      spotifyId: review.spotifyId,
+      albumId: review.albumId,
+      albumName: review.albumName,
+      albumCover: review.albumCover,
+      albumArtist: review.albumArtist,
+      releaseYear: review.releaseYear,
+      rating: review.rating,
+      text: review.text,
+      createdAt: review.createdAt,
+      userId: review.userId,
+      user: {
+        id: review.user.id,
+        username: review.user.username,
+        displayName: review.user.displayName,
+        avatar: review.user.avatarUrl,
+        avatarUrl: review.user.avatarUrl,
+      },
+      likeCount: review._count.likes,
+      commentCount: review._count.comments,
+      isLiked: review.likes.length > 0,
+      isMine: review.userId === currentUserId,
+    };
+  }
+
   async update(id: number, userId: number, updateReviewDto: UpdateReviewDto) {
     return this.prisma.review.updateMany({
       where: {
@@ -74,8 +124,10 @@ export class ReviewsService {
   return this.prisma.review.delete({ where: { id } });
 }
 
-async findAllByAlbumId(albumId: string, currentUserId: number) {
-  const blockedConnectionIds = await this.moderationService.getBlockedConnectionIds(currentUserId);
+async findAllByAlbumId(albumId: string, currentUserId?: number | null) {
+  const blockedConnectionIds = currentUserId
+    ? await this.moderationService.getBlockedConnectionIds(currentUserId)
+    : [];
 
   const reviews = await this.prisma.review.findMany({
     where: {
@@ -84,7 +136,7 @@ async findAllByAlbumId(albumId: string, currentUserId: number) {
     },
     include: {
       _count: { select: { likes: true, comments: true } },
-      likes: { where: { userId: currentUserId }, select: { userId: true } },
+      likes: { where: { userId: currentUserId || -1 }, select: { userId: true } },
       user: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
     },
   });
@@ -95,7 +147,7 @@ async findAllByAlbumId(albumId: string, currentUserId: number) {
       likeCount: r._count.likes,
       commentCount: r._count.comments,
       isLiked: r.likes.length > 0,
-      isMine: r.userId === currentUserId,
+      isMine: currentUserId ? r.userId === currentUserId : false,
     }))
     .sort((a, b) => b.likeCount - a.likeCount);
 

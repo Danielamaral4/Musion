@@ -4,7 +4,6 @@
   align-items: center;
   min-height: 100vh;
   background-color: #18191D;
-  font-family: Arial, sans-serif;
 }
 
 .auth-box {
@@ -41,6 +40,37 @@ h2 {
   background-color: transparent;
   color: #fff;
   box-sizing: border-box;
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  padding-right: 3rem;
+}
+
+.password-wrapper button {
+  position: absolute;
+  right: 0.35rem;
+  width: 2.3rem;
+  height: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #dee0e8;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1.25rem;
+}
+
+.password-wrapper button:hover {
+  background: rgba(222, 224, 232, 0.08);
 }
 
 /* INPUT WRAPPER PARA USERNAME COM ICONE */
@@ -80,14 +110,82 @@ h2 {
   background-color: #ffffff;
 }
 
-.toggle-button {
+.auth-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+}
+
+.auth-links button {
   width: 100%;
   background: none;
   border: none;
   color: #dee0e831;
   text-decoration: underline;
   cursor: pointer;
-  margin-top: 1.5rem;
+}
+
+.google-login-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 1rem;
+}
+
+.google-auth-button {
+  width: 100%;
+  min-height: 46px;
+  border: 1.5px solid #dee0e831;
+  border-radius: 20px;
+  background-color: transparent;
+  color: #dee0e8;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  pointer-events: none;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.google-auth-mark {
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: #dee0e8;
+  color: #18191D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
+.google-login-wrapper:hover .google-auth-button {
+  border-color: #dee0e8;
+  background-color: rgba(222, 224, 232, 0.05);
+  box-shadow: 0 10px 26px rgba(222, 224, 232, 0.16);
+}
+
+.google-hidden-button {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.google-hidden-button > div,
+.google-hidden-button iframe {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .message {

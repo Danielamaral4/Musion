@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const localApiURL = 'http://192.168.15.4:3000';
+const localApiURL = 'http://192.168.15.6:3000';
 const baseURL = process.env.EXPO_PUBLIC_API_URL || localApiURL;
 
 const api = axios.create({
@@ -29,7 +29,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !isAuthRequest) {
       await AsyncStorage.removeItem('musion_token');
-      alert('Sessao expirada! Por favor, faca login novamente.');
+      alert('Sessão expirada! Por favor, faça login novamente.');
     }
 
     return Promise.reject(error);

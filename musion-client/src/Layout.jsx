@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { IoChatbubbleOutline, IoEllipsisVertical, IoNotificationsOutline } from 'react-icons/io5';
 import api from './api';
 import ReviewModal from './ReviewModal';
+import { DEFAULT_AVATAR, getDisplayName } from './utils';
 import './Layout.css';
 import Logo from './assets/Musion0.png';
 
@@ -15,8 +17,11 @@ function Layout() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState({ albums: [], users: [] }); 
   const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   
   const searchContainerRef = useRef(null); 
+  const profileMenuRef = useRef(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   // Fecha ao clicar fora
@@ -25,9 +30,31 @@ function Layout() {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
         setSearchResults({ albums: [], users: [] });
       }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const cachedUser = localStorage.getItem('user');
+    if (cachedUser) {
+      try {
+        setCurrentUser(JSON.parse(cachedUser));
+      } catch {}
+    }
+
+    const loadMe = async () => {
+      try {
+        const response = await api.get('/users/me');
+        setCurrentUser(response.data);
+        localStorage.setItem('user', JSON.stringify(response.data));
+      } catch {}
+    };
+
+    loadMe();
   }, []);
 
   // --- BUSCA ---
@@ -75,15 +102,19 @@ function Layout() {
   };
 
 const handleSearchAlbumClick = (album) => {
+  const albumTarget = album.spotifyId || album.albumId || album.id;
+  if (!albumTarget) return;
+
   setSearchResults({ albums: [], users: [] });
   setSearchQuery('');
   // Navega para a página do álbum
-  navigate(`/album/${album.id}`);
+  navigate(`/album/${albumTarget}`);
 };
 
   const handleLogout = () => {
     localStorage.removeItem('musion_token');
-    window.location.href = '/login';
+    localStorage.removeItem('user');
+    window.location.href = '/';
   };
 
   // --- FUNÇÃO QUE RODA QUANDO UMA REVIEW É SALVA PELO MENU (+) ---
@@ -122,7 +153,7 @@ const handleSearchAlbumClick = (album) => {
                 <div className="results-section">
                   <h4 className="results-category-title">USUÁRIOS</h4>
                   {searchResults.users.map(user => (
-                    <div key={user.id} className="result-item user-item" onClick={() => handleSearchAlbumClick(album)}>
+                    <div key={user.id} className="result-item user-item" onClick={() => handleUserClick(user.id)}>
                       <img src={user.avatarUrl || 'https://i.stack.imgur.com/l60Hf.png'} alt="Avatar" className="result-avatar" />
                       <div className="result-info">
                         <span className="result-name">{user.displayName || user.username}</span>
@@ -158,6 +189,12 @@ const handleSearchAlbumClick = (album) => {
         <div className="navbar-links">
           <Link to="/" className="nav-link">Início</Link>
           <Link to="/feed" className="nav-link">Feed</Link>
+          <Link to="/chat" className="nav-icon-link" title="Chat">
+            <IoChatbubbleOutline />
+          </Link>
+          <Link to="/notifications" className="nav-icon-link" title="Notificações">
+            <IoNotificationsOutline />
+          </Link>
           
 
           <button className="new-review-btn" onClick={() => setIsReviewModalOpen(true)} title="Nova Review">
@@ -168,8 +205,37 @@ const handleSearchAlbumClick = (album) => {
             </svg>
           </button>
         
-          <Link to="/profile" className="nav-link">Perfil</Link>
-          <button onClick={handleLogout} className="logout-button">Sair</button>
+          <Link to="/profile" className="nav-profile-link" title="Perfil">
+            <img
+              className="nav-profile-avatar"
+              src={currentUser?.avatarUrl || currentUser?.avatar || DEFAULT_AVATAR}
+              alt="Perfil"
+            />
+            <span className="nav-profile-text">
+              <strong>{getDisplayName(currentUser || {})}</strong>
+              <small>@{currentUser?.username || 'usuário'}</small>
+            </span>
+          </Link>
+
+          <div className="nav-profile-menu" ref={profileMenuRef}>
+            <button
+              className="nav-profile-menu-button"
+              onClick={() => setProfileMenuOpen((value) => !value)}
+              title="Opções"
+            >
+              <IoEllipsisVertical />
+            </button>
+
+            {profileMenuOpen && (
+              <div className="nav-profile-dropdown">
+                {currentUser?.role === 'ADMIN' && (
+                  <Link to="/admin/moderation" onClick={() => setProfileMenuOpen(false)}>Moderação</Link>
+                )}
+                <Link to="/settings" onClick={() => setProfileMenuOpen(false)}>Configurações</Link>
+                <button onClick={handleLogout}>Sair</button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
       
@@ -190,3 +256,4 @@ const handleSearchAlbumClick = (album) => {
 }
 
 export default Layout;
+

@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manual Completo do Musion</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 16mm 14mm 16mm 14mm;
+    }
+
+    :root {
+      --bg: #18191d;
+      --panel: #15161a;
+      --panel-2: #1f2026;
+      --text: #dee0e8;
+      --muted: rgba(222, 224, 232, 0.68);
+      --soft: rgba(222, 224, 232, 0.13);
+      --line: rgba(222, 224, 232, 0.24);
+      --green: #37a603;
+      --yellow: #f2cb05;
+      --red: #f20505;
+      --shadow: rgba(222, 224, 232, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      page-break-after: always;
+      position: relative;
+      min-height: 265mm;
+      padding: 7mm 4mm;
+    }
+
+    .page:last-child {
+      page-break-after: auto;
+    }
+
+    .cover {
+      min-height: 265mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .cover::before,
+    .cover::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(38px);
+      opacity: 0.42;
+      z-index: 0;
+    }
+
+    .cover::before {
+      width: 280px;
+      height: 280px;
+      background: rgba(55, 166, 3, 0.28);
+      top: 38mm;
+      right: 3mm;
+    }
+
+    .cover::after {
+      width: 340px;
+      height: 340px;
+      background: rgba(222, 224, 232, 0.13);
+      bottom: 28mm;
+      left: -40mm;
+    }
+
+    .cover-inner,
+    .card,
+    .callout,
+    .flow,
+    .toc,
+    table {
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      width: 190px;
+      height: auto;
+      display: block;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0;
+      line-height: 1.08;
+      color: var(--text);
+      page-break-after: avoid;
+    }
+
+    h1 {
+      font-size: 39pt;
+      max-width: 620px;
+      letter-spacing: -0.5px;
+    }
+
+    h2 {
+      font-size: 24pt;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 15pt;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+
+    h4 {
+      font-size: 11pt;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      color: rgba(222, 224, 232, 0.92);
+    }
+
+    p {
+      margin: 0 0 9px;
+    }
+
+    a {
+      color: var(--text);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(222, 224, 232, 0.45);
+    }
+
+    ul,
+    ol {
+      margin: 6px 0 10px 18px;
+      padding: 0;
+    }
+
+    li {
+      margin: 3px 0;
+      padding-left: 2px;
+    }
+
+    code,
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      color: #ffffff;
+      background: rgba(222, 224, 232, 0.08);
+      border: 1px solid rgba(222, 224, 232, 0.12);
+      border-radius: 5px;
+      padding: 1px 5px;
+    }
+
+    pre {
+      margin: 8px 0 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #101115;
+      border: 1px solid rgba(222, 224, 232, 0.16);
+      white-space: pre-wrap;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9pt;
+      color: rgba(222, 224, 232, 0.9);
+      page-break-inside: avoid;
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14pt;
+    }
+
+    .cover-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 40px;
+      max-width: 690px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(222, 224, 232, 0.24);
+      border-radius: 999px;
+      padding: 7px 11px;
+      color: rgba(222, 224, 232, 0.78);
+      font-size: 9pt;
+      font-weight: 700;
+      margin: 4px 5px 4px 0;
+    }
+
+    .card {
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background:
+        linear-gradient(135deg, rgba(222, 224, 232, 0.08), transparent 38%),
+        var(--panel);
+      box-shadow: 0 0 28px var(--shadow);
+      page-break-inside: avoid;
+    }
+
+    .card.compact {
+      padding: 12px;
+    }
+
+    .grid-2,
+    .grid-3 {
+      display: grid;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .grid-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card-title {
+      font-size: 10pt;
+      color: rgba(222, 224, 232, 0.55);
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .callout {
+      margin: 12px 0;
+      border-left: 4px solid var(--text);
+      background: rgba(222, 224, 232, 0.07);
+      padding: 12px 14px;
+      border-radius: 10px;
+      page-break-inside: avoid;
+    }
+
+    .callout.green {
+      border-left-color: var(--green);
+    }
+
+    .callout.yellow {
+      border-left-color: var(--yellow);
+    }
+
+    .callout.red {
+      border-left-color: var(--red);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr 36px 1fr 36px 1fr;
+      align-items: stretch;
+      gap: 8px;
+      margin: 14px 0;
+      page-break-inside: avoid;
+    }
+
+    .flow-box {
+      border: 1px solid rgba(222, 224, 232, 0.18);
+      border-radius: 13px;
+      padding: 12px;
+      background: rgba(222, 224, 232, 0.06);
+      min-height: 78px;
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: rgba(222, 224, 232, 0.68);
+      font-size: 18pt;
+      font-weight: 800;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(222, 224, 232, 0.16);
+    }
+
+    .section-number {
+      color: rgba(222, 224, 232, 0.35);
+      font-size: 28pt;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .toc {
+      columns: 2;
+      column-gap: 18px;
+      margin-top: 18px;
+    }
+
+    .toc a {
+      display: block;
+      break-inside: avoid;
+      color: var(--text);
+      border: 1px solid rgba(222, 224, 232, 0.14);
+      background: rgba(222, 224, 232, 0.05);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 0 0 9px;
+      text-decoration: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 12px 0;
+      page-break-inside: avoid;
+      font-size: 9.5pt;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(222, 224, 232, 0.18);
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 9px 10px;
+      border-bottom: 1px solid rgba(222, 224, 232, 0.11);
+    }
+
+    th {
+      background: rgba(222, 224, 232, 0.12);
+      color: var(--text);
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: rgba(222, 224, 232, 0.09);
+      border: 1px solid rgba(222, 224, 232, 0.13);
+      font-size: 8.5pt;
+      color: rgba(222, 224, 232, 0.78);
+      margin: 2px 2px 2px 0;
+    }
+
+    .footer-note {
+      color: rgba(222, 224, 232, 0.45);
+      font-size: 8.5pt;
+      margin-top: 16px;
+      border-top: 1px solid rgba(222, 224, 232, 0.12);
+      padding-top: 9px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 9pt;
+    }
+
+    .avoid-break {
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+  <section class="page cover">
+    <div class="cover-inner">
+      <img class="logo" src="../assets/musionlogo.png" alt="Musion" />
+      <p class="eyebrow">Manual completo para estudo, apresentacao e defesa tecnica</p>
+      <h1>Musion: arquitetura, produto e funcionamento</h1>
+      <p class="subtitle">
+        Documento guia para explicar o Musion de ponta a ponta: proposta do produto,
+        backend NestJS, banco MySQL, aplicativo mobile React Native/Expo, recomendacoes,
+        sensores, QA, CI/CD e versao web de apoio.
+      </p>
+
+      <div class="cover-meta">
+        <div class="card compact">
+          <div class="card-title">Projeto</div>
+          <p><strong>Musion</strong><br />Rede social mobile para reviews musicais.</p>
+        </div>
+        <div class="card compact">
+          <div class="card-title">Ordem do documento</div>
+          <p>Produto, backend, mobile, dados/IA, QA, operacao e web por ultimo.</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <span class="pill">React Native</span>
+        <span class="pill">Expo</span>
+        <span class="pill">NestJS</span>
+        <span class="pill">Prisma</span>
+        <span class="pill">MySQL</span>
+        <span class="pill">Spotify API</span>
+        <span class="pill">Last.fm</span>
+        <span class="pill">Google Sign-In</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Como usar este PDF</p>
+        <h2>Mapa de estudo</h2>
+      </div>
+      <div class="section-number">00</div>
+    </div>
+
+    <div class="callout green">
+      <p><strong>Leitura recomendada:</strong> comece pela visao geral, entenda a arquitetura,
+      estude o backend, depois o mobile, e deixe a web para o fim. Se voce precisa apresentar,
+      use as frases prontas no final de cada bloco.</p>
+    </div>
+
+    <div class="toc">
+      <a href="#visao">1. Visao geral do produto</a>
+      <a href="#requisitos">2. Requisitos atendidos</a>
+      <a href="#arquitetura">3. Arquitetura geral</a>
+      <a href="#backend">4. Backend NestJS</a>
+      <a href="#banco">5. Banco de dados e Prisma</a>
+      <a href="#auth">6. Autenticacao e seguranca</a>
+      <a href="#recomendacoes">7. Recomendacoes e APIs musicais</a>
+      <a href="#mobile">8. Aplicativo mobile</a>
+      <a href="#fluxos">9. Fluxos principais do app</a>
+      <a href="#sensor">10. Sensor, compartilhamento e recursos nativos</a>
+      <a href="#moderacao">11. Moderacao e admin</a>
+      <a href="#qa">12. QA, CI/CD e performance</a>
+      <a href="#operacao">13. Como rodar e configurar</a>
+      <a href="#web">14. Versao web</a>
+      <a href="#fala">15. Como explicar em apresentacao</a>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Ideia central</div>
+        <p>O Musion transforma albuns em objetos sociais: cada album pode ter reviews,
+        notas, comentarios, media da comunidade, previews e discussoes.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Defesa tecnica em uma frase</div>
+        <p>O projeto combina app mobile hibrido, backend proprio, banco SQL,
+        APIs musicais, recomendacao inteligente, sensor do dispositivo e pipeline de QA.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="visao">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Produto</p>
+        <h2>1. Visao geral do Musion</h2>
+      </div>
+      <div class="section-number">01</div>
+    </div>
+
+    <p>
+      O Musion e uma rede social para amantes de musica, focada em reviews de albuns.
+      Diferente de um streaming, o objetivo principal nao e apenas tocar musica: e registrar
+      opinioes, dar notas, organizar historico pessoal, descobrir albuns pela comunidade
+      e conversar com outros usuarios.
+    </p>
+
+    <div class="grid-3">
+      <div class="card compact">
+        <div class="card-title">Publico-alvo</div>
+        <p>Ouvintes que escutam albuns completos, gostam de avaliar obras e querem descobrir musica por opiniao social.</p>
+      </div>
+      <div class="card compact">
+        <div class="card-title">Problema</div>
+        <p>Streamings mostram catalogo, mas nao organizam bem reviews, notas, comentarios e comunidade por album.</p>
+      </div>
+      <div class="card compact">
+        <div class="card-title">Solucao</div>
+        <p>Um app mobile social que une catalogo musical, reviews, feed, perfis, chat e recomendacoes.</p>
+      </div>
+    </div>
+
+    <h3>Principais funcionalidades</h3>
+    <ul>
+      <li>Cadastro, login com email/senha, login com Google e redefinicao de senha por email.</li>
+      <li>Feed social de reviews com curtidas, comentarios, compartilhamento e abertura do post completo.</li>
+      <li>Busca de albuns e usuarios.</li>
+      <li>Criacao e edicao de reviews com nota de 0 a 10.</li>
+      <li>Pagina de album com capa, metadados, faixas, previews, link para Spotify e reviews da comunidade.</li>
+      <li>Trending com albuns em alta, lancamentos e recomendacoes personalizadas.</li>
+      <li>Perfil com avatar, bio, reviews, seguidores e seguindo.</li>
+      <li>Chat entre usuarios e notificacoes de interacoes.</li>
+      <li>Bloqueio, denuncia, solicitacao de exclusao e painel admin para moderacao.</li>
+      <li>Uso de acelerometro para controlar o slider de nota.</li>
+    </ul>
+
+    <div class="callout">
+      <p><strong>Como falar:</strong> "O Musion e uma camada social em cima do habito de ouvir albuns.
+      Ele nao compete com o Spotify para tocar musica; ele complementa a experiencia com opiniao,
+      comunidade, historico e descoberta."</p>
+    </div>
+  </section>
+
+  <section class="page" id="requisitos">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Requisitos academicos</p>
+        <h2>2. O que o projeto atende</h2>
+      </div>
+      <div class="section-number">02</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>Como o Musion atende</th>
+          <th>Evidencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Planejamento</td>
+          <td>Publico, problema, solucao e prototipagem definidos.</td>
+          <td>Figma, relatorios e fluxo funcional no app.</td>
+        </tr>
+        <tr>
+          <td>Mobile Development</td>
+          <td>Aplicativo hibrido em React Native com Expo.</td>
+          <td><span class="mono">musion-mobile/</span></td>
+        </tr>
+        <tr>
+          <td>Banco de dados</td>
+          <td>Persistencia em MySQL com Prisma ORM.</td>
+          <td><span class="mono">api/prisma/schema.prisma</span></td>
+        </tr>
+        <tr>
+          <td>IoT / sensores</td>
+          <td>Acelerometro do celular controla a nota da review.</td>
+          <td>Tela AddReview com Expo Sensors.</td>
+        </tr>
+        <tr>
+          <td>Big Data & IA</td>
+          <td>Motor de recomendacao hibrido via API usando dados internos e APIs externas.</td>
+          <td>Dashboard, Spotify, Last.fm e scoring no backend.</td>
+        </tr>
+        <tr>
+          <td>QA</td>
+          <td>Testes backend, validacao mobile, plano JMeter e builds automatizados.</td>
+          <td><span class="mono">.github/workflows</span> e <span class="mono">api/tests/performance</span></td>
+        </tr>
+        <tr>
+          <td>CI/CD</td>
+          <td>Pipeline GitHub Actions e workflow EAS para APK Android.</td>
+          <td><span class="mono">ci.yml</span> e <span class="mono">eas-android-preview.yml</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout yellow">
+      <p><strong>Observacao importante:</strong> Game Development nao se aplica, porque o Musion e um projeto mobile,
+      nao um jogo. Os requisitos de Unity, Godot, AR e NPCs ficam fora do escopo escolhido.</p>
+    </div>
+  </section>
+
+  <section class="page" id="arquitetura">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Arquitetura</p>
+        <h2>3. Como as partes se conectam</h2>
+      </div>
+      <div class="section-number">03</div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-box">
+        <div class="card-title">Mobile</div>
+        React Native/Expo, telas, navegacao, sensor, Google Sign-In, previews e compartilhamento.
+      </div>
+      <div class="arrow">></div>
+      <div class="flow-box">
+        <div class="card-title">API</div>
+        NestJS, JWT, Prisma, regras de negocio, recomendacoes, moderacao e integracoes.
+      </div>
+      <div class="arrow">></div>
+      <div class="flow-box">
+        <div class="card-title">Dados e servicos</div>
+        MySQL, Spotify, Last.fm, Deezer, Cloudinary, SMTP e Google OAuth.
+      </div>
+    </div>
+
+    <h3>Estrutura de pastas</h3>
+    <pre>C:\Users\Daniel\Desktop\Musion\musion
+api/            Backend NestJS + Prisma + MySQL
+musion-mobile/  Aplicativo principal React Native/Expo
+musion-client/  Versao web em React/Vite
+.github/        Workflows de QA e build</pre>
+
+    <h3>Fluxo padrao de uma acao</h3>
+    <ol>
+      <li>Usuario interage com uma tela do app, por exemplo curtir uma review.</li>
+      <li>O app chama a API com Axios e envia o token JWT no header Authorization.</li>
+      <li>O AuthGuard valida o token e identifica o usuario.</li>
+      <li>O service do modulo executa a regra de negocio.</li>
+      <li>O Prisma grava ou consulta o MySQL.</li>
+      <li>A API retorna JSON e o app atualiza a interface.</li>
+    </ol>
+
+    <div class="callout">
+      <p><strong>Como explicar:</strong> "A arquitetura separa interface, regra de negocio e dados.
+      O mobile nao acessa banco diretamente; ele conversa com a API, e a API centraliza seguranca,
+      integracoes e persistencia."</p>
+    </div>
+  </section>
+
+  <section class="page" id="backend">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Backend</p>
+        <h2>4. Backend NestJS</h2>
+      </div>
+      <div class="section-number">04</div>
+    </div>
+
+    <p>
+      O backend fica em <span class="mono">api/</span> e foi construido com NestJS. Ele e responsavel por
+      autenticacao, regras sociais, integracoes musicais, recomendacoes, email, chat, notificacoes,
+      moderacao e acesso ao banco via Prisma.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Tecnologias</div>
+        <span class="tag">NestJS</span>
+        <span class="tag">TypeScript</span>
+        <span class="tag">Prisma</span>
+        <span class="tag">MySQL</span>
+        <span class="tag">JWT</span>
+        <span class="tag">Passport</span>
+        <span class="tag">bcrypt</span>
+        <span class="tag">Nodemailer</span>
+      </div>
+      <div class="card">
+        <div class="card-title">Padrao interno</div>
+        <p>Controllers recebem requisicoes, services executam regras de negocio, PrismaService acessa o banco,
+        DTOs validam dados de entrada e Guards protegem rotas sensiveis.</p>
+      </div>
+    </div>
+
+    <h3>Modulos principais</h3>
+    <table>
+      <thead>
+        <tr><th>Modulo</th><th>Responsabilidade</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">auth</span></td><td>Cadastro, login, Google, JWT, reset de senha e validacao do usuario.</td></tr>
+        <tr><td><span class="mono">users</span></td><td>Perfil, edicao, avatar, seguidores, busca, senha, exclusao e role admin.</td></tr>
+        <tr><td><span class="mono">reviews</span></td><td>Criar, editar, listar e remover reviews; reviews por album; comentarios.</td></tr>
+        <tr><td><span class="mono">dashboard</span></td><td>Feed, tendencias, curtidas e recomendacoes personalizadas.</td></tr>
+        <tr><td><span class="mono">spotify</span></td><td>Busca de albuns, detalhes, lancamentos, faixas, links e previews.</td></tr>
+        <tr><td><span class="mono">chat</span></td><td>Conversas entre usuarios, busca de usuarios no chat e mensagens.</td></tr>
+        <tr><td><span class="mono">notifications</span></td><td>Notificacoes de curtidas, comentarios e seguidores.</td></tr>
+        <tr><td><span class="mono">moderation</span></td><td>Denuncias, bloqueios e rotas administrativas de analise.</td></tr>
+        <tr><td><span class="mono">legal</span></td><td>Termos, politica de privacidade e solicitacoes publicas de exclusao.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Rotas de referencia</h3>
+    <pre>POST /auth/register
+POST /auth/login
+POST /auth/google
+POST /auth/forgot-password
+POST /auth/reset-password
+
+GET    /users/me
+PATCH  /users/me
+PATCH  /users/me/password
+DELETE /users/me
+GET    /users/search
+GET    /users/profile/:id
+POST   /users/:id/follow
+DELETE /users/:id/follow
+
+POST   /reviews
+GET    /reviews/me
+GET    /reviews/album/:albumId
+PATCH  /reviews/:id
+DELETE /reviews/:id
+GET    /reviews/:id/comments
+POST   /reviews/:id/comments
+
+GET  /dashboard
+GET  /dashboard/feed
+POST /dashboard/review/:id/like
+GET  /dashboard/recommend/recent
+GET  /dashboard/recommend/second
+GET  /dashboard/recommend/third</pre>
+  </section>
+
+  <section class="page" id="banco">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Dados</p>
+        <h2>5. Banco de dados e Prisma</h2>
+      </div>
+      <div class="section-number">05</div>
+    </div>
+
+    <p>
+      O banco e MySQL, executado localmente por Docker ou instalacao propria. O Prisma define os modelos,
+      gera o cliente TypeScript e aplica migrations. Isso evita SQL manual espalhado pelo projeto e
+      deixa o schema versionado.
+    </p>
+
+    <h3>Modelos principais</h3>
+    <table>
+      <thead>
+        <tr><th>Modelo</th><th>O que guarda</th><th>Relacoes importantes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>User</td><td>Conta, email, username, senha criptografada, displayName, avatar, bio e role.</td><td>Reviews, follows, likes, comments, reports, blocks, notifications.</td></tr>
+        <tr><td>Review</td><td>Texto, nota, albumId, nome do album, capa, artista e ano.</td><td>Pertence a User; tem likes, comments e notifications.</td></tr>
+        <tr><td>Follow</td><td>Relacao follower/following.</td><td>Permite seguidores e seguindo.</td></tr>
+        <tr><td>Like</td><td>Curtida de usuario em review.</td><td>Chave composta userId + reviewId.</td></tr>
+        <tr><td>Comment</td><td>Comentario em review.</td><td>Pertence a User e Review.</td></tr>
+        <tr><td>Notification</td><td>Evento recebido pelo usuario.</td><td>Referencia sender, review e comment quando aplicavel.</td></tr>
+        <tr><td>Chat</td><td>Mensagens entre usuarios usando sessionId e role.</td><td>Historico de conversa.</td></tr>
+        <tr><td>UserBlock</td><td>Bloqueio entre usuarios.</td><td>Impede interacoes indesejadas.</td></tr>
+        <tr><td>Report</td><td>Denuncias de usuario, review ou comentario.</td><td>Fila de moderacao.</td></tr>
+        <tr><td>DataDeletionRequest</td><td>Pedidos publicos de exclusao de dados.</td><td>Atende privacidade e requisitos legais.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout green">
+      <p><strong>Atualizacao recente:</strong> o campo <span class="mono">role</span> foi adicionado em User.
+      Ele permite diferenciar usuarios comuns de administradores no painel de moderacao.</p>
+    </div>
+
+    <h3>Comandos importantes</h3>
+    <pre>cd api
+npx prisma generate
+npx prisma migrate deploy
+npx prisma studio</pre>
+  </section>
+
+  <section class="page" id="auth">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Seguranca</p>
+        <h2>6. Autenticacao e conta</h2>
+      </div>
+      <div class="section-number">06</div>
+    </div>
+
+    <h3>Login normal</h3>
+    <p>
+      O usuario informa email e senha. O backend busca o usuario pelo email, compara a senha com
+      bcrypt e, se estiver correto, gera um JWT. O token e enviado ao app e salvo localmente para
+      chamadas futuras.
+    </p>
+
+    <h3>Cadastro</h3>
+    <p>
+      O cadastro exige nome, username, email e senha. O backend normaliza email e username, valida
+      duplicidade, criptografa a senha com bcrypt e cria o usuario no MySQL.
+    </p>
+
+    <h3>Login com Google</h3>
+    <p>
+      No mobile, o Google Sign-In nativo retorna um idToken. O backend valida esse token usando
+      os Client IDs configurados. Se o email ja existe, ele entra na conta; se nao existe, o backend
+      cria uma conta com nome, email, avatar e username unico.
+    </p>
+
+    <h3>Redefinicao de senha</h3>
+    <ol>
+      <li>Usuario informa o email.</li>
+      <li>API gera um codigo temporario de 6 digitos.</li>
+      <li>Codigo e armazenado com hash e expiracao.</li>
+      <li>Nodemailer envia o email com identidade visual do Musion.</li>
+      <li>Usuario informa codigo e nova senha.</li>
+      <li>Backend valida codigo, atualiza senha e limpa o token.</li>
+    </ol>
+
+    <h3>Rotas administrativas</h3>
+    <p>
+      O acesso admin usa <span class="mono">AdminGuard</span>. Ele permite acesso se o usuario tiver
+      <span class="mono">role = ADMIN</span> ou se o ID estiver no fallback <span class="mono">MODERATION_ADMIN_USER_IDS</span>.
+      Esse fallback serve para promover o primeiro administrador.
+    </p>
+  </section>
+
+  <section class="page" id="recomendacoes">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Dados e IA</p>
+        <h2>7. Recomendacoes e APIs musicais</h2>
+      </div>
+      <div class="section-number">07</div>
+    </div>
+
+    <p>
+      A tela Trending e as recomendacoes dependem de um conjunto de dados internos e externos.
+      O objetivo e evitar recomendacoes repetitivas e sugerir albuns que tenham relacao com o gosto
+      do usuario e com a atividade da comunidade.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Sinais internos</div>
+        <ul>
+          <li>Reviews criadas pelo usuario.</li>
+          <li>Notas altas e historico recente.</li>
+          <li>Albuns ja avaliados, para evitar repeticao.</li>
+          <li>Likes, comentarios e reviews da comunidade.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Sinais externos</div>
+        <ul>
+          <li>Spotify para busca, metadados, lancamentos e links.</li>
+          <li>Last.fm para tags, artistas similares e apoio semantico.</li>
+          <li>Fallback de preview quando Spotify nao entrega trecho de faixa.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Como defender como IA / Big Data</h3>
+    <p>
+      O projeto usa um motor de recomendacao hibrido consumido por API. Ele analisa dados coletados
+      no app e dados de bases musicais externas para calcular sugestoes. Mesmo sem treinar um modelo
+      proprio pesado, existe uma camada inteligente de scoring, ranking, filtros e diversificacao.
+    </p>
+
+    <div class="callout yellow">
+      <p><strong>Limite real de API:</strong> Spotify pode retornar 429 quando muitas requisicoes sao feitas.
+      Por isso o backend precisa de cache, reducao de chamadas repetidas e tratamento de fallback. Isso e
+      uma boa oportunidade para explicar preocupacao com performance e robustez.</p>
+    </div>
+  </section>
+
+  <section class="page" id="mobile">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Aplicativo principal</p>
+        <h2>8. Mobile React Native/Expo</h2>
+      </div>
+      <div class="section-number">08</div>
+    </div>
+
+    <p>
+      O mobile e o produto principal do Musion. Ele fica em <span class="mono">musion-mobile/</span>,
+      usa Expo SDK 54, React Native 0.81, React Navigation e componentes nativos para camera/galeria,
+      sensores, audio, compartilhamento e teclado.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Dependencias importantes</div>
+        <span class="tag">expo</span>
+        <span class="tag">react-navigation</span>
+        <span class="tag">axios</span>
+        <span class="tag">async-storage</span>
+        <span class="tag">expo-av</span>
+        <span class="tag">expo-sensors</span>
+        <span class="tag">expo-sharing</span>
+        <span class="tag">view-shot</span>
+        <span class="tag">google-signin</span>
+      </div>
+      <div class="card">
+        <div class="card-title">Navegacao</div>
+        <p>O app usa Stack Navigator para telas completas e Bottom Tab Navigator para Feed, Search,
+        Trending e Chat. A splash e exibida antes da navegacao principal.</p>
+      </div>
+    </div>
+
+    <h3>Telas principais</h3>
+    <table>
+      <thead>
+        <tr><th>Tela</th><th>Funcao</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>LoginScreen</td><td>Login, cadastro, Google, reset de senha e mostrar/ocultar senha.</td></tr>
+        <tr><td>FeedScreen</td><td>Timeline social com reviews, likes, comentarios, compartilhamento e acesso a perfil/post.</td></tr>
+        <tr><td>SearchScreen</td><td>Busca por albuns e usuarios.</td></tr>
+        <tr><td>TrendingScreen</td><td>Tendencias, lancamentos e recomendacoes personalizadas.</td></tr>
+        <tr><td>AddReviewScreen</td><td>Busca album, escreve review, nota com slider e controle por acelerometro.</td></tr>
+        <tr><td>AlbumDetailsScreen</td><td>Detalhes do album, faixas, previews, link Spotify e reviews da comunidade.</td></tr>
+        <tr><td>PostScreen</td><td>Review completa e comentarios.</td></tr>
+        <tr><td>ProfilePage</td><td>Perfil, avatar, bio, seguidores, seguindo e reviews do usuario.</td></tr>
+        <tr><td>ChatScreen</td><td>Conversas e envio de mensagens entre usuarios.</td></tr>
+        <tr><td>SettingsScreen</td><td>Configuracoes, senha, exclusao, termos, privacidade e bloqueados.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page" id="fluxos">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Fluxos do app</p>
+        <h2>9. Como as funcionalidades funcionam</h2>
+      </div>
+      <div class="section-number">09</div>
+    </div>
+
+    <h3>Fluxo: criar uma review</h3>
+    <div class="flow">
+      <div class="flow-box">Buscar album no Spotify pela tela AddReview.</div>
+      <div class="arrow">></div>
+      <div class="flow-box">Selecionar album, escrever review e escolher nota.</div>
+      <div class="arrow">></div>
+      <div class="flow-box">Enviar para API, gravar no MySQL e atualizar feed/perfil/album.</div>
+    </div>
+
+    <h3>Fluxo: abrir pagina de album</h3>
+    <ol>
+      <li>Usuario clica em capa, titulo ou resultado de busca.</li>
+      <li>App carrega detalhes do album na API.</li>
+      <li>Backend consulta Spotify e complementa dados com reviews do Musion.</li>
+      <li>Tela mostra capa, artista, ano, faixas, media, previews e reviews.</li>
+    </ol>
+
+    <h3>Fluxo: social</h3>
+    <ul>
+      <li>Curtir uma review cria ou remove um registro em Like.</li>
+      <li>Comentar cria Comment e pode gerar Notification.</li>
+      <li>Seguir cria Follow e notifica o usuario seguido.</li>
+      <li>Chat cria mensagens com sessionId compartilhado entre os dois usuarios.</li>
+    </ul>
+
+    <h3>Fluxo: notificacoes</h3>
+    <p>
+      O backend registra eventos relevantes como LIKE, FOLLOW e COMMENT. A tela de notificacoes lista
+      esses eventos e permite marcar como lido. Isso aproxima o app de uma rede social real.
+    </p>
+  </section>
+
+  <section class="page" id="sensor">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Recursos nativos</p>
+        <h2>10. Sensor, audio e compartilhamento</h2>
+      </div>
+      <div class="section-number">10</div>
+    </div>
+
+    <h3>Acelerometro no slider de nota</h3>
+    <p>
+      O recurso de sensor fica na tela de adicionar review. Quando ativado, o acelerometro do celular
+      captura a inclinacao do aparelho e transforma esse valor em nota no slider. Isso demonstra coleta
+      de dado fisico em tempo real e aplicacao direta na interface.
+    </p>
+
+    <div class="callout green">
+      <p><strong>Frase de defesa:</strong> "Na parte de sensores, usamos o hardware do proprio celular.
+      O acelerometro controla a nota da review em tempo real, entao o dado fisico influencia diretamente
+      o comportamento do app."</p>
+    </div>
+
+    <h3>Previews de faixa</h3>
+    <p>
+      A pagina de album tenta tocar previews das faixas com <span class="mono">expo-av</span>. Quando o Spotify
+      nao fornece preview, o backend tenta uma alternativa externa. Se nao houver trecho disponivel, o app
+      ainda oferece o link do album no Spotify.
+    </p>
+
+    <h3>Compartilhamento de review</h3>
+    <p>
+      O app monta um card visual de review com capa, titulo, artista, nota, texto e assinatura do usuario.
+      Esse card e capturado como imagem com view-shot e compartilhado via Expo Sharing. Assim o conteudo
+      do Musion pode circular fora do app sem perder identidade visual.
+    </p>
+
+    <h3>Teclado e experiencia mobile</h3>
+    <p>
+      Telas como Post e Chat foram ajustadas para trabalhar com teclado em Android, evitando que inputs
+      fiquem escondidos pela barra de navegacao ou pelo teclado virtual.
+    </p>
+  </section>
+
+  <section class="page" id="moderacao">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Seguranca social</p>
+        <h2>11. Moderacao, bloqueio e admin</h2>
+      </div>
+      <div class="section-number">11</div>
+    </div>
+
+    <p>
+      Como o Musion tem interacao social, o projeto inclui mecanismos de seguranca: denuncia,
+      bloqueio, solicitacao de exclusao e painel administrativo.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Denuncia</div>
+        <p>Usuarios podem denunciar perfis, reviews ou comentarios. A denuncia fica salva em Report
+        com targetType, targetId, reporterId, reason, details e status.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Bloqueio</div>
+        <p>Bloqueios sao salvos em UserBlock. O sistema remove conexoes de follow e evita interacoes
+        indesejadas entre usuarios.</p>
+      </div>
+    </div>
+
+    <h3>Painel admin</h3>
+    <p>
+      A versao web possui a rota <span class="mono">/admin/moderation</span>. Ela permite analisar denuncias,
+      atualizar status, ver solicitacoes de exclusao e gerenciar usuarios administradores.
+    </p>
+
+    <h3>Como criar um admin</h3>
+    <ol>
+      <li>Defina temporariamente <span class="mono">MODERATION_ADMIN_USER_IDS</span> no backend com o ID do seu usuario.</li>
+      <li>Acesse a web, entre na conta e abra <span class="mono">/admin/moderation</span>.</li>
+      <li>No painel, busque seu usuario e use "Tornar admin".</li>
+      <li>Depois disso, o banco tera <span class="mono">role = ADMIN</span> e o fallback pode ficar vazio.</li>
+    </ol>
+
+    <pre>MODERATION_ADMIN_USER_IDS="1"</pre>
+  </section>
+
+  <section class="page" id="qa">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Qualidade</p>
+        <h2>12. QA, CI/CD e performance</h2>
+      </div>
+      <div class="section-number">12</div>
+    </div>
+
+    <h3>Validador atual</h3>
+    <table>
+      <thead>
+        <tr><th>Camada</th><th>Validacao</th><th>Comando ou arquivo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Backend</td><td>Testes unitarios com Jest.</td><td><span class="mono">npm test -- --runInBand</span></td></tr>
+        <tr><td>Backend</td><td>Build NestJS.</td><td><span class="mono">npm run build</span></td></tr>
+        <tr><td>Mobile</td><td>Validacao JSX.</td><td><span class="mono">npm run validate</span></td></tr>
+        <tr><td>Performance</td><td>Plano JMeter.</td><td><span class="mono">api/tests/performance/musion-api.jmx</span></td></tr>
+        <tr><td>CI/CD</td><td>GitHub Actions para API e mobile.</td><td><span class="mono">.github/workflows/ci.yml</span></td></tr>
+        <tr><td>APK</td><td>Build Android preview com EAS.</td><td><span class="mono">eas-android-preview.yml</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Pipeline principal</h3>
+    <p>
+      O workflow <span class="mono">Musion QA</span> instala dependencias, gera Prisma Client, roda testes,
+      faz build da API, instala dependencias mobile e executa a validacao JSX.
+    </p>
+
+    <h3>Build Android</h3>
+    <p>
+      O workflow EAS Android Preview executa validacao do app e dispara build Android preview usando
+      o token da Expo configurado nos secrets do GitHub.
+    </p>
+
+    <div class="callout">
+      <p><strong>Como explicar:</strong> "O QA nao esta limitado a teste manual. O projeto tem teste,
+      build, validacao mobile, performance planejada com JMeter e automacao de build Android."</p>
+    </div>
+  </section>
+
+  <section class="page" id="operacao">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Execucao</p>
+        <h2>13. Como rodar e configurar</h2>
+      </div>
+      <div class="section-number">13</div>
+    </div>
+
+    <h3>Banco com Docker</h3>
+    <pre>cd C:\Users\Daniel\Desktop\Musion\musion
+docker compose up -d</pre>
+
+    <h3>Backend</h3>
+    <pre>cd C:\Users\Daniel\Desktop\Musion\musion\api
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run start:dev</pre>
+
+    <h3>Mobile</h3>
+    <pre>cd C:\Users\Daniel\Desktop\Musion\musion\musion-mobile
+npm install
+npx expo start</pre>
+
+    <h3>APK preview</h3>
+    <pre>cd C:\Users\Daniel\Desktop\Musion\musion\musion-mobile
+npx eas-cli@latest build -p android --profile preview --clear-cache</pre>
+
+    <h3>Variaveis de ambiente mais importantes</h3>
+    <table>
+      <thead>
+        <tr><th>Variavel</th><th>Uso</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>DATABASE_URL</td><td>Conexao MySQL usada pelo Prisma.</td></tr>
+        <tr><td>JWT_SECRET</td><td>Assinatura dos tokens JWT.</td></tr>
+        <tr><td>SPOTIFY_CLIENT_ID / SECRET</td><td>Busca de albuns, faixas, lancamentos e metadados.</td></tr>
+        <tr><td>LASTFM_API_KEY</td><td>Tags e apoio para recomendacoes.</td></tr>
+        <tr><td>CLOUDINARY_*</td><td>Upload de avatar.</td></tr>
+        <tr><td>SMTP_*</td><td>Envio do codigo de redefinicao de senha.</td></tr>
+        <tr><td>GOOGLE_WEB_CLIENT_ID</td><td>Validacao do login com Google no backend.</td></tr>
+        <tr><td>MODERATION_ADMIN_USER_IDS</td><td>Fallback para acesso admin inicial.</td></tr>
+        <tr><td>EXPO_PUBLIC_API_URL</td><td>URL da API usada pelo app mobile.</td></tr>
+        <tr><td>EXPO_PUBLIC_GOOGLE_*</td><td>Client IDs usados pelo Google Sign-In no mobile.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page" id="web">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Camada de apoio</p>
+        <h2>14. Versao web</h2>
+      </div>
+      <div class="section-number">14</div>
+    </div>
+
+    <p>
+      A web fica em <span class="mono">musion-client/</span> e usa React com Vite. Ela e menos importante
+      que o mobile na defesa principal, mas hoje funciona como extensao do produto: dashboard publico,
+      autenticacao, navegacao por albuns/perfis, reviews, chat, configuracoes e painel administrativo.
+    </p>
+
+    <h3>O que existe na web</h3>
+    <ul>
+      <li>Landing/dashboard publico para visitante conhecer albuns aclamados e buscar conteudo.</li>
+      <li>Login/cadastro e login com Google quando configurado.</li>
+      <li>Layout autenticado com busca central, perfil, menu e nova review.</li>
+      <li>Feed, perfil, album page, post page, chat, notificacoes e configuracoes.</li>
+      <li>Painel admin em <span class="mono">/admin/moderation</span>.</li>
+    </ul>
+
+    <h3>Por que ela fica por ultimo</h3>
+    <p>
+      O requisito principal do projeto e mobile. A web e uma vitrine e uma ferramenta operacional,
+      especialmente para admin/moderacao. Na apresentacao, use a web para mostrar painel admin ou
+      dashboard publico se houver tempo, mas concentre a demonstracao no app mobile.
+    </p>
+
+    <h3>Como rodar</h3>
+    <pre>cd C:\Users\Daniel\Desktop\Musion\musion\musion-client
+npm install
+npm run dev</pre>
+  </section>
+
+  <section class="page" id="fala">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Apresentacao</p>
+        <h2>15. Como explicar o Musion</h2>
+      </div>
+      <div class="section-number">15</div>
+    </div>
+
+    <h3>Resumo em 30 segundos</h3>
+    <div class="callout green">
+      <p>
+        "O Musion e uma rede social mobile para reviews de albuns. O usuario cria uma conta,
+        avalia discos, comenta, curte, segue perfis, conversa por chat e recebe recomendacoes
+        personalizadas. Por tras, existe um backend NestJS com MySQL, Prisma, JWT, integracoes
+        com Spotify e Last.fm, reset de senha por email, moderacao e CI/CD."
+      </p>
+    </div>
+
+    <h3>Ordem ideal no video</h3>
+    <ol>
+      <li>Splash, login e cadastro.</li>
+      <li>Feed e abertura de uma review.</li>
+      <li>Criar review buscando album.</li>
+      <li>Mostrar acelerometro controlando nota.</li>
+      <li>Pagina de album com faixas, preview e Spotify.</li>
+      <li>Trending e recomendacoes.</li>
+      <li>Perfil, seguidores, chat e notificacoes.</li>
+      <li>Compartilhamento de review como imagem.</li>
+      <li>Moderacao, bloqueio e configuracoes.</li>
+      <li>Arquitetura backend, banco, APIs e QA.</li>
+      <li>Web por ultimo: dashboard publico e admin.</li>
+    </ol>
+
+    <h3>Perguntas que podem surgir</h3>
+    <table>
+      <thead>
+        <tr><th>Pergunta</th><th>Resposta boa</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Por que isso nao e so um Spotify?</td>
+          <td>Porque o foco e opiniao social, historico de reviews, notas, comunidade e descoberta por pessoas.</td>
+        </tr>
+        <tr>
+          <td>Onde entra sensor?</td>
+          <td>No acelerometro que controla o slider da nota em tempo real.</td>
+        </tr>
+        <tr>
+          <td>Onde entra IA/dados?</td>
+          <td>No motor de recomendacao hibrido via API, que usa historico do usuario, comunidade e dados externos.</td>
+        </tr>
+        <tr>
+          <td>Onde os dados ficam?</td>
+          <td>No MySQL, acessado por Prisma no backend NestJS.</td>
+        </tr>
+        <tr>
+          <td>Como o app e seguro?</td>
+          <td>Senha com bcrypt, JWT, guards, reset por codigo, roles admin e rotas protegidas.</td>
+        </tr>
+        <tr>
+          <td>Como funciona moderacao?</td>
+          <td>Denuncias entram em Report, bloqueios em UserBlock e admins analisam no painel web.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer-note">
+      Documento gerado para apoiar estudo e defesa do Musion. Use como guia tecnico e roteiro de fala.
+    </div>
+  </section>
+</body>
+</html>

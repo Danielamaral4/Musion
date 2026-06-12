@@ -2,13 +2,11 @@
 
 ## Integrantes
 
-Preencher antes da entrega:
-
-- Nome 1 - RM:
-- Nome 2 - RM:
-- Nome 3 - RM:
-- Nome 4 - RM:
-- Nome 5 - RM:
+- Alinne Assis - RA: 106912
+- Daniel Amaral - RA: 9565
+- Henrique Uno - RA: 101399
+- Kauê Castro - RA: 105933
+- Robson Silva - RA: 104047
 
 ## Proposta do video
 
@@ -86,7 +84,31 @@ Requisito atendido:
 - Funcionalidades sociais.
 - Persistencia em banco de dados.
 
-## 4. Criacao de review com sensor - 1 minuto
+## 4. Prototipagem e identidade visual - 35 segundos
+
+Cena:
+
+- Mostrar o arquivo do Figma rapidamente.
+- Mostrar baixa fidelidade, alta fidelidade e identidade visual.
+- Voltar para o app e mostrar que a interface final segue essa direcao.
+
+Fala sugerida:
+
+> Antes da implementacao, o projeto tambem passou por prototipagem no Figma. Foram criadas etapas de baixa fidelidade, alta fidelidade e identidade visual.
+
+> Esse material guiou a construcao da interface: paleta escura, uso da marca Musion, componentes, hierarquia visual e fluxo principal do usuario.
+
+Link de apoio:
+
+- Figma: https://www.figma.com/design/3vxc6zix8EpASANx0atm8g/Musion?node-id=0-1&t=qaMMQ94OXhc6kUZ4-1
+
+Requisito atendido:
+
+- Planejamento de requisitos.
+- Prototipagem e design da solucao.
+- Definicao visual do produto.
+
+## 5. Criacao de review com sensor - 1 minuto
 
 Cena:
 
@@ -112,7 +134,7 @@ Requisito atendido:
 - Coleta e uso de dados em tempo real.
 - Banco SQL.
 
-## 5. Pagina de album - 1 minuto
+## 6. Pagina de album - 1 minuto
 
 Cena:
 
@@ -137,7 +159,7 @@ Requisito atendido:
 - Consumo de dados em tempo real.
 - Experiencia mobile completa.
 
-## 6. Trending, lancamentos e recomendacoes - 1 minuto
+## 7. Trending, lancamentos e recomendacoes - 1 minuto
 
 Cena:
 
@@ -161,7 +183,7 @@ Requisito atendido:
 - Analise de dados coletados.
 - Recomendacoes personalizadas.
 
-## 7. Perfil, seguidores, chat e notificacoes - 1 minuto
+## 8. Perfil, seguidores, chat e notificacoes - 1 minuto
 
 Cena:
 
@@ -187,7 +209,7 @@ Requisito atendido:
 - Comunicacao entre usuarios.
 - Persistencia de dados.
 
-## 8. Compartilhamento e identidade visual - 45 segundos
+## 9. Compartilhamento e identidade visual - 45 segundos
 
 Cena:
 
@@ -206,7 +228,7 @@ Requisito atendido:
 - Funcionalidade mobile real.
 - Identidade visual.
 
-## 9. Moderacao, bloqueio e privacidade - 50 segundos
+## 10. Moderacao, bloqueio e privacidade - 50 segundos
 
 Cena:
 
@@ -230,7 +252,7 @@ Requisito atendido:
 - Privacidade.
 - Produto mais proximo de uso real.
 
-## 10. Arquitetura tecnica - 1 minuto
+## 11. Arquitetura tecnica - 1 minuto
 
 Cena:
 
@@ -262,7 +284,7 @@ Requisito atendido:
 - Integracoes externas.
 - Arquitetura modular.
 
-## 11. QA, performance e CI/CD - 1 minuto
+## 12. QA, performance e CI/CD - 1 minuto
 
 Cena:
 
@@ -297,7 +319,7 @@ Requisito atendido:
 - CI/CD no GitHub Actions.
 - Build de APK.
 
-## 12. Fechamento - 30 segundos
+## 13. Fechamento - 30 segundos
 
 Cena:
 
@@ -329,12 +351,13 @@ Fala sugerida:
 
 1. Splash e login.
 2. Feed.
-3. Criar review com sensor.
-4. Pagina de album com preview e Spotify.
-5. Trending e recomendacoes.
-6. Perfil, seguidores, chat e notificacoes.
-7. Compartilhamento.
-8. Moderacao, bloqueio e configuracoes.
-9. Arquitetura, banco e integracoes.
-10. QA, CI/CD e requisitos.
-11. Encerramento.
+3. Figma e identidade visual.
+4. Criar review com sensor.
+5. Pagina de album com preview e Spotify.
+6. Trending e recomendacoes.
+7. Perfil, seguidores, chat e notificacoes.
+8. Compartilhamento.
+9. Moderacao, bloqueio e configuracoes.
+10. Arquitetura, banco e integracoes.
+11. QA, CI/CD e requisitos.
+12. Encerramento.

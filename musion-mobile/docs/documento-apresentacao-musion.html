@@ -21,6 +21,12 @@
         box-sizing: border-box;
       }
 
+      html,
+      body {
+        min-height: 100%;
+        background: var(--bg);
+      }
+
       body {
         margin: 0;
         background: radial-gradient(circle at 50% 0%, rgba(222, 224, 232, 0.15), transparent 34%),
@@ -203,20 +209,39 @@
         font-size: 13px;
       }
 
+      a {
+        color: var(--text);
+        font-weight: 700;
+        text-decoration-color: rgba(222, 224, 232, 0.45);
+      }
+
       @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+
+        html,
         body {
-          background: #18191d;
+          width: 100%;
+          min-height: 100%;
+          background: #18191d !important;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
 
         .page {
-          padding: 24px;
+          width: 100%;
+          max-width: none;
+          min-height: 100vh;
+          padding: 28px;
+          background: #18191d !important;
         }
 
         section,
         .hero {
           break-inside: avoid;
+          page-break-inside: avoid;
         }
       }
 
@@ -248,11 +273,11 @@
 
         <h3>Integrantes</h3>
         <div class="members">
-          <div class="member-line">Nome - RM:</div>
-          <div class="member-line">Nome - RM:</div>
-          <div class="member-line">Nome - RM:</div>
-          <div class="member-line">Nome - RM:</div>
-          <div class="member-line">Nome - RM:</div>
+          <div class="member-line">Daniel Amaral - RA: 9565</div>
+          <div class="member-line">Alinne Assis - RA: 106912</div>
+          <div class="member-line">Henrique Uno - RA: 101399</div>
+          <div class="member-line">Kauê Castro - RA: 105933</div>
+          <div class="member-line">Robson Silva - RA: 104047</div>
         </div>
       </header>
 
@@ -285,7 +310,24 @@
       </section>
 
       <section>
-        <h2>3. Arquitetura</h2>
+        <h2>3. Prototipagem e Identidade Visual</h2>
+        <p>
+          O projeto tambem possui prototipagem no Figma, contemplando baixa
+          fidelidade, alta fidelidade e identidade visual. Essa etapa orientou a
+          construcao da interface mobile, incluindo paleta escura, uso da marca
+          Musion, hierarquia visual, componentes, fluxo de navegacao e
+          organizacao das telas principais.
+        </p>
+        <p>
+          Link do Figma:
+          <a href="https://www.figma.com/design/3vxc6zix8EpASANx0atm8g/Musion?node-id=0-1&amp;t=qaMMQ94OXhc6kUZ4-1">
+            Musion - prototipagem e identidade visual
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Arquitetura</h2>
         <p>
           A solucao e dividida entre app mobile e backend. O mobile foi
           desenvolvido em React Native com Expo. A API foi desenvolvida em
@@ -321,7 +363,7 @@
       </section>
 
       <section>
-        <h2>4. Atendimento aos Requisitos do PDF</h2>
+        <h2>5. Atendimento aos Requisitos do PDF</h2>
         <table class="table">
           <tr>
             <th>Requisito</th>
@@ -372,7 +414,7 @@
       </section>
 
       <section>
-        <h2>5. Big Data, IA e Recomendacoes</h2>
+        <h2>6. Big Data, IA e Recomendacoes</h2>
         <p>
           O Musion utiliza uma abordagem de recomendacao hibrida. A API analisa
           reviews recentes, notas altas, albuns ja avaliados, atividade da
@@ -386,7 +428,7 @@
       </section>
 
       <section>
-        <h2>6. Sensor Mobile</h2>
+        <h2>7. Sensor Mobile</h2>
         <p>
           Na tela de adicionar review, o usuario pode ativar o controle por
           sensor. A inclinacao do celular, capturada pelo acelerometro, move o
@@ -396,7 +438,7 @@
       </section>
 
       <section>
-        <h2>7. QA e CI/CD</h2>
+        <h2>8. QA e CI/CD</h2>
         <ul>
           <li>Testes unitarios no backend com Jest.</li>
           <li>Build da API NestJS.</li>
@@ -408,7 +450,7 @@
       </section>
 
       <section>
-        <h2>8. Conclusao</h2>
+        <h2>9. Conclusao</h2>
         <p>
           O Musion entrega uma experiencia mobile completa e integrada. O app
           combina reviews musicais, descoberta, comunidade, chat, moderacao,
@@ -417,7 +459,7 @@
         </p>
       </section>
 
-      <p class="footer">Musion - documento de apoio para apresentacao academica.</p>
+      <p class="footer">Musion</p>
     </main>
   </body>
 </html>

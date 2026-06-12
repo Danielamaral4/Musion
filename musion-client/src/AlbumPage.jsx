@@ -3,6 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FaSpotify } from 'react-icons/fa'; // Ícone do Spotify
 import api from './api';
 import './AlbumPage.css';
+import ReviewModal from './ReviewModal';
+import { IoChatbubbleOutline, IoEllipsisVertical, IoShareSocialOutline } from 'react-icons/io5';
+import { reportTarget } from './moderation';
+import { shareReview } from './shareReview';
 
 function AlbumPage() {
   const params = useParams();
@@ -20,6 +24,19 @@ function AlbumPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openReviewMenuId, setOpenReviewMenuId] = useState(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewToEdit, setReviewToEdit] = useState(null);
+  const [initialReviewAlbum, setInitialReviewAlbum] = useState(null);
+  const [playingTrackId, setPlayingTrackId] = useState(null);
+  const [audio, setAudio] = useState(null);
+  const [expandedCover, setExpandedCover] = useState(null);
+  const isLoggedIn = Boolean(localStorage.getItem('musion_token'));
+
+  const requireLogin = () => {
+    if (isLoggedIn) return true;
+    navigate('/login');
+    return false;
+  };
 
   // --- Helpers ---
   const formatTime = (d) => {
@@ -55,16 +72,25 @@ function AlbumPage() {
       setLoading(true);
       setError('');
       try {
-        try {
-          const meRes = await api.get('/users/me');
-          setCurrentUser(meRes.data);
-        } catch (e) {}
+        let hasValidSession = isLoggedIn;
+
+        if (isLoggedIn) {
+          try {
+            const meRes = await api.get('/users/me');
+            setCurrentUser(meRes.data);
+          } catch (e) {
+            hasValidSession = false;
+            setCurrentUser(null);
+          }
+        } else {
+          setCurrentUser(null);
+        }
 
         const albumRes = await api.get(`/spotify/album/${albumId}`);
         setAlbum(albumRes.data);
         if (albumRes.data.tracks?.items) setTracks(albumRes.data.tracks.items);
 
-        const reviewsRes = await api.get(`/reviews/album/${albumId}`);
+        const reviewsRes = await api.get(hasValidSession ? `/reviews/album/${albumId}` : `/reviews/public/album/${albumId}`);
         let reviewsList = [];
         if (Array.isArray(reviewsRes.data)) {
           reviewsList = reviewsRes.data;
@@ -80,10 +106,25 @@ function AlbumPage() {
       } finally { setLoading(false); }
     };
     loadData();
-  }, [albumId, navigate]);
+  }, [albumId, navigate, isLoggedIn]);
+
+  useEffect(() => {
+    return () => {
+      if (audio) audio.pause();
+    };
+  }, [audio]);
+
+  const normalizeReviewsResponse = (payload) => {
+    if (Array.isArray(payload)) return { reviews: payload, averageRating: null };
+
+    return {
+      reviews: payload?.reviews || [],
+      averageRating: payload?.averageRating || null,
+    };
+  };
 
   const handleLikeToggle = async (reviewId, currentIsLiked, currentCount) => {
-    if (!currentUser) return;
+    if (!requireLogin()) return;
     setReviews(prev => prev.map(r => {
       const rId = r.id || r.reviewId;
       if (rId === reviewId) {
@@ -102,7 +143,84 @@ function AlbumPage() {
     } catch (e) { alert("Erro ao excluir."); }
   };
 
-  const handleEditReview = (review) => { console.log("Editar:", review); };
+  const currentUserReview = reviews.find((review) => review.isMine);
+
+  const handleOpenReviewModal = () => {
+    if (!requireLogin()) return;
+
+    if (currentUserReview) {
+      setReviewToEdit(currentUserReview);
+      setInitialReviewAlbum(null);
+    } else {
+      setReviewToEdit(null);
+      setInitialReviewAlbum({
+        id: albumId,
+        spotifyId: albumId,
+        name: album.name,
+        imageUrl: album.images?.[0]?.url,
+        artistName: album.artists?.map((artist) => artist.name).join(', '),
+        releaseDate: album.release_date,
+        totalTracks: album.total_tracks,
+        totalDurationMin: Math.floor(totalDurationMs / 60000),
+      });
+    }
+    setIsReviewModalOpen(true);
+  };
+
+  const handleReviewSaved = async () => {
+    const reviewsRes = await api.get(`/reviews/album/${albumId}`);
+    const normalized = normalizeReviewsResponse(reviewsRes.data);
+    setReviews(normalized.reviews);
+    setAverageRating(normalized.averageRating);
+    setIsReviewModalOpen(false);
+  };
+
+  const handleEditReview = (review) => {
+    setReviewToEdit(review);
+    setInitialReviewAlbum(null);
+    setIsReviewModalOpen(true);
+    setOpenReviewMenuId(null);
+  };
+
+  const handleCloseReviewModal = () => {
+    setIsReviewModalOpen(false);
+    setReviewToEdit(null);
+    setInitialReviewAlbum(null);
+  };
+
+  const handlePlayPreview = async (track) => {
+    if (playingTrackId === track.id && audio) {
+      audio.pause();
+      setAudio(null);
+      setPlayingTrackId(null);
+      return;
+    }
+
+    if (audio) audio.pause();
+
+    let previewUrl = track.preview_url;
+
+    if (!previewUrl) {
+      try {
+        const artist = track.artists?.[0]?.name || album.artists?.[0]?.name;
+        const response = await api.get('/spotify/track-preview', {
+          params: { track: track.name, artist },
+        });
+        previewUrl = response.data?.previewUrl;
+      } catch {}
+    }
+
+    if (!previewUrl) {
+      window.alert('Prévia indisponível para esta faixa.');
+      return;
+    }
+
+    const nextAudio = new Audio(previewUrl);
+    nextAudio.onended = () => setPlayingTrackId(null);
+    await nextAudio.play();
+    setAudio(nextAudio);
+    setPlayingTrackId(track.id);
+  };
 
   const getRatingColor = (r) => {
     const n = parseFloat(r);
@@ -122,7 +240,12 @@ function AlbumPage() {
 
       {/* HEADER DO ÁLBUM */}
       <div className="album-header-wrapper">
-        <img src={album.images?.[0]?.url} alt={album.name} className="album-cover-img" />
+        <img
+          src={album.images?.[0]?.url}
+          alt={album.name}
+          className="album-cover-img"
+          onClick={() => setExpandedCover(album.images?.[0]?.url)}
+        />
 
         <div className="album-header-info">
           <h1 className="album-title">{album.name}</h1>
@@ -130,8 +253,11 @@ function AlbumPage() {
 
           <div className="album-meta-info">
             <span>{album.release_date}</span>
-            <span>{album.total_tracks} Músicas</span>
+            <span>{album.total_tracks} músicas</span>
             <span>{msToMinutes(totalDurationMs)}</span>
+            <button className="album-review-button" onClick={handleOpenReviewModal}>
+              {currentUserReview ? 'Editar review' : 'Avaliar álbum'}
+            </button>
             {album.external_urls?.spotify && (
               <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer" className="spotify-icon">
                 <FaSpotify />
@@ -152,9 +278,18 @@ function AlbumPage() {
         <h3>Faixas</h3>
         <ul className="tracklist">
           {tracks.map((track, idx) => (
-            <li key={track.id} className="track-item">
+            <li key={track.id || `${track.name}-${idx}`} className="track-item">
               <span>{idx + 1}. {track.name}</span>
-              <span className="track-duration">{msToMinutes(track.duration_ms)}</span>
+              <span className="track-duration">
+                <button
+                  className="track-preview-btn"
+                  onClick={() => handlePlayPreview(track)}
+                  title="Ouvir prévia"
+                >
+                  {playingTrackId === track.id ? 'Pausar' : 'Play'}
+                </button>
+                {msToMinutes(track.duration_ms)}
+              </span>
             </li>
           ))}
         </ul>
@@ -162,7 +297,7 @@ function AlbumPage() {
 
       {/* REVIEWS */}
       <div className="album-reviews-section">
-        <h3>Reviews Populares</h3>
+        <h3>Reviews populares</h3>
         {reviews.length === 0 && <p className="no-results">Seja o primeiro a avaliar este álbum!</p>}
 
         {reviews.map((review) => {
@@ -189,23 +324,41 @@ function AlbumPage() {
 
                 <div className="feed-header-right">
                   <span className="feed-timestamp">{formatTime(review.createdAt)}</span>
-                  {isOwner && (
-                    <div className="menu-wrapper">
-                      <button className="options-button" onClick={(e) => { e.stopPropagation(); setOpenReviewMenuId(openReviewMenuId === reviewId ? null : reviewId); }}>
-                        &#x22EE;
-                      </button>
-                      {openReviewMenuId === reviewId && (
-                        <div className="review-dropdown-menu">
-                          <button onClick={() => handleEditReview(review)}>Editar</button>
-                          <button onClick={() => handleDeleteReview(reviewId)} className="delete-btn">Excluir</button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="menu-wrapper" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      className="options-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenReviewMenuId(openReviewMenuId === reviewId ? null : reviewId);
+                      }}
+                      title="Opções"
+                    >
+                      <IoEllipsisVertical />
+                    </button>
+                    {openReviewMenuId === reviewId && (
+                      <div className="review-dropdown-menu">
+                        {isOwner ? (
+                          <>
+                            <button onClick={() => handleEditReview(review)}>Editar</button>
+                            <button onClick={() => handleDeleteReview(reviewId)} className="delete-btn">Excluir</button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              if (!requireLogin()) return;
+                              reportTarget('REVIEW', reviewId, 'review');
+                            }}
+                          >
+                            Denunciar
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="review-card-body">
+              <div className="review-card-body clickable-review-body" onClick={() => navigate(`/post/${reviewId}`)}>
                 <div className="review-details">
                   <p className="review-text">{review.text}</p>
                 </div>
@@ -222,10 +375,47 @@ function AlbumPage() {
                 </button>
                 <span className="like-count">{review.likeCount > 0 ? review.likeCount : ''}</span>
               </div>
+
+              <div className="review-action-row">
+                <button className="review-icon-action" onClick={() => navigate(`/post/${reviewId}`)} title="Comentários">
+                  <IoChatbubbleOutline />
+                  <span>{review.commentCount || 0}</span>
+                </button>
+                <button
+                  className="review-icon-action"
+                  onClick={() =>
+                    shareReview({
+                      ...review,
+                      reviewId,
+                      albumName: album.name,
+                      albumArtist: album.artists?.map((artist) => artist.name).join(', '),
+                      albumCover: album.images?.[0]?.url,
+                    })
+                  }
+                  title="Compartilhar"
+                >
+                  <IoShareSocialOutline />
+                </button>
+              </div>
             </div>
           );
         })}
       </div>
+
+      {isReviewModalOpen && (
+        <ReviewModal
+          onClose={handleCloseReviewModal}
+          onReviewSaved={handleReviewSaved}
+          reviewToEdit={reviewToEdit}
+          initialAlbum={initialReviewAlbum}
+        />
+      )}
+
+      {expandedCover && (
+        <div className="cover-lightbox" onClick={() => setExpandedCover(null)}>
+          <img src={expandedCover} alt={album.name} onClick={(event) => event.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }

@@ -21,8 +21,8 @@ import {
 // --- FUNÇÕES AUXILIARES ---
 const normalizeAlbum = (a) => ({
   id: a.id || a.albumId || a._id,
-  name: a.name || a.albumName || 'Álbum Desconhecido',
-  artistName: a.artistName || a.albumArtist || a.artists?.[0]?.name || 'Artista Desconhecido',
+  name: a.name || a.albumName || 'Álbum desconhecido',
+  artistName: a.artistName || a.albumArtist || a.artists?.[0]?.name || 'Artista desconhecido',
   imageUrl: a.imageUrl || a.albumCover || a.images?.[0]?.url || '',
   rating: a.rating ?? null,
 });
@@ -209,23 +209,23 @@ export function TrendingScreen({ navigation }) {
         {/* CONTEÚDO SCROLLÁVEL */}
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
-          <Text style={styles.sectionTitle}>Em Alta no Musion</Text>
+          <Text style={styles.sectionTitle}>Em alta no Musion</Text>
           {loading && !data ? <SkeletonGrid /> : <AlbumGrid albums={data?.popular} navigation={navigation} />}
 
-          <Text style={styles.sectionTitle}>Lancamentos da Semana</Text>
+          <Text style={styles.sectionTitle}>Lançamentos da semana</Text>
           {loading && !weeklyReleases.length ? (
             <SkeletonGrid />
           ) : (
             <AlbumGrid albums={weeklyReleases} navigation={navigation} />
           )}
 
-          <Text style={styles.sectionTitle}>Aclamação da Crítica</Text>
+          <Text style={styles.sectionTitle}>Aclamação da crítica</Text>
           {loading && !data ? <SkeletonGrid /> : <AlbumGrid albums={data?.topRated} navigation={navigation} />}
 
           {recommendedByLast?.length > 0 && (
             <View>
               <Text style={styles.sectionTitle}>
-                Porque você curtiu <Text style={styles.recommendedName}>{lastAlbumName}</Text>
+                Por ter curtido <Text style={styles.recommendedName}>{lastAlbumName}</Text>
               </Text>
               <AlbumGrid albums={recommendedByLast} navigation={navigation} />
             </View>
@@ -234,7 +234,7 @@ export function TrendingScreen({ navigation }) {
           {recommendedBySecond?.length > 0 && (
             <View>
               <Text style={styles.sectionTitle}>
-                Porque você também curtiu <Text style={styles.recommendedName}>{secondAlbumName}</Text>
+                Por também ter curtido <Text style={styles.recommendedName}>{secondAlbumName}</Text>
               </Text>
               <AlbumGrid albums={recommendedBySecond} navigation={navigation} />
             </View>
@@ -243,7 +243,7 @@ export function TrendingScreen({ navigation }) {
           {recommendedByThird?.length > 0 && (
             <View>
               <Text style={styles.sectionTitle}>
-                Porque você gostou de <Text style={styles.recommendedName}>{thirdAlbumName}</Text>
+                Por ter gostado de <Text style={styles.recommendedName}>{thirdAlbumName}</Text>
               </Text>
               <AlbumGrid albums={recommendedByThird} navigation={navigation} />
             </View>

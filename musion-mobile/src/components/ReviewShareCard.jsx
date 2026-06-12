@@ -157,7 +157,7 @@ export function useReviewShare() {
           } catch (error) {
             Alert.alert(
               'Compartilhar',
-              'Nao foi possivel gerar a imagem da review agora.'
+              'Não foi possível gerar a imagem da review agora.'
             );
           } finally {
             setPendingReview(null);

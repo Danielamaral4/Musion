@@ -54,7 +54,7 @@ export default function NotificationsScreen({ navigation }) {
         )
       );
     } catch (error) {
-      console.error('Erro ao marcar notificaÃ§Ã£o como lida:', error);
+      console.error('Erro ao marcar notificação como lida:', error);
     }
   };
 

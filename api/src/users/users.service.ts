@@ -15,6 +15,22 @@ export class UsersService {
     private moderationService: ModerationService
   ) {} // Injeta o Prisma e o serviço de notificações
 
+  private normalizeFollowCounts<T extends { _count?: any }>(user: T): T {
+    if (!user?._count) return user;
+
+    const followers = user._count.following ?? 0;
+    const following = user._count.followers ?? 0;
+
+    return {
+      ...user,
+      _count: {
+        ...user._count,
+        followers,
+        following,
+      },
+    };
+  }
+
   // Função para o Auth (login)
 async findOne(email: string): Promise<User | undefined> {
         const user = await this.prisma.user.findUnique({
@@ -204,7 +220,7 @@ async findById(id: number): Promise<Omit<User, 'password'> | null> {
 
     // Remove a senha antes de retornar
     const { password, ...result } = user;
-    return result;
+    return this.normalizeFollowCounts(result);
   }
 
   // --- NOVA FUNÇÃO DE UPDATE ---
@@ -230,7 +246,7 @@ async findById(id: number): Promise<Omit<User, 'password'> | null> {
 
       // Remove a senha antes de retornar
       const { password, ...result } = user;
-      return result;
+      return this.normalizeFollowCounts(result);
     } catch (error: any) {
       // Pega erros do Prisma (ex: username duplicado)
       if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
@@ -253,7 +269,7 @@ async findById(id: number): Promise<Omit<User, 'password'> | null> {
     });
     
     const { password, ...result } = user;
-    return result;
+    return this.normalizeFollowCounts(result);
   }
 
 // --- SEGUIR USUÁRIO (CORRIGIDO) ---
@@ -350,7 +366,7 @@ async findById(id: number): Promise<Omit<User, 'password'> | null> {
     return following.map((follow) => follow.following);
   }
   
-async findProfile(targetUserId: number, currentUserId: number) {
+async findProfile(targetUserId: number, currentUserId?: number | null) {
   // 1. Buscar dados do usuário + contadores
   const user = await this.prisma.user.findUnique({
     where: { id: targetUserId },
@@ -363,19 +379,21 @@ async findProfile(targetUserId: number, currentUserId: number) {
 
   if (!user) return null;
 
-  const blockStatus = await this.moderationService.getBlockStatus(currentUserId, targetUserId);
+  const blockStatus = currentUserId
+    ? await this.moderationService.getBlockStatus(currentUserId, targetUserId)
+    : { isBlocked: false, blockedMe: false };
   const shouldHideContent =
-    currentUserId !== targetUserId && (blockStatus.isBlocked || blockStatus.blockedMe);
+    Boolean(currentUserId) && currentUserId !== targetUserId && (blockStatus.isBlocked || blockStatus.blockedMe);
 
   // 2. Verificar se EU sigo esse usuário
-  const isFollowing = await this.prisma.follow.findUnique({
+  const isFollowing = currentUserId ? await this.prisma.follow.findUnique({
     where: {
       followerId_followingId: {
         followerId: currentUserId,
         followingId: targetUserId,
       }
     }
-  });
+  }) : null;
 
   // 3. Buscar reviews do usuário visitado (COM LIKECOUNT + ISLIKED)
   const reviews = shouldHideContent ? [] : await this.prisma.review.findMany({
@@ -384,7 +402,7 @@ async findProfile(targetUserId: number, currentUserId: number) {
     include: {
       _count: { select: { likes: true, comments: true } },
       likes: {
-        where: { userId: currentUserId }, // verifica se eu curti
+        where: { userId: currentUserId || -1 }, // verifica se eu curti
         select: { userId: true }
       }
     }
@@ -398,7 +416,8 @@ async findProfile(targetUserId: number, currentUserId: number) {
   }));
 
   // 4. Remover a senha e retornar o perfil completo
-  const { password, ...userData } = user;
+  const { password, ...rawUserData } = user;
+  const userData = this.normalizeFollowCounts(rawUserData);
 
   return {
     ...userData,
@@ -408,23 +427,99 @@ async findProfile(targetUserId: number, currentUserId: number) {
   };
 }
   // Busca usuários por nome ou username
-  async searchUsers(query: string, currentUserId: number) {
-    const blockedConnectionIds = await this.moderationService.getBlockedConnectionIds(currentUserId);
+  async searchUsers(query: string, currentUserId?: number | null) {
+    const cleanQuery = (query || '').trim();
+    if (!cleanQuery) {
+      return [];
+    }
+
+    const blockedConnectionIds = currentUserId
+      ? await this.moderationService.getBlockedConnectionIds(currentUserId)
+      : [];
+
+    const where: any = {
+      OR: [
+        { username: { contains: cleanQuery } },
+        { displayName: { contains: cleanQuery } },
+      ],
+    };
+
+    if (blockedConnectionIds.length > 0) {
+      where.id = { notIn: blockedConnectionIds };
+    }
 
     return this.prisma.user.findMany({
-      where: {
-        id: { notIn: blockedConnectionIds },
-        OR: [
-          { username: { contains: query } }, 
-          { displayName: { contains: query } },
-        ],
-      },
-      take: 5, // Limita a 5 resultados
+      where,
+      take: 8,
       select: { 
         id: true, 
         username: true, 
         displayName: true, 
         avatarUrl: true 
+      },
+    });
+  }
+
+  async listUsersForAdmin(query = '', role = 'ALL') {
+    const cleanQuery = String(query || '').trim();
+    const normalizedRole = String(role || 'ALL').trim().toUpperCase();
+    const where: any = {};
+
+    if (['USER', 'ADMIN'].includes(normalizedRole)) {
+      where.role = normalizedRole;
+    }
+
+    if (cleanQuery) {
+      where.OR = [
+        { username: { contains: cleanQuery } },
+        { displayName: { contains: cleanQuery } },
+        { email: { contains: cleanQuery } },
+      ];
+    }
+
+    return this.prisma.user.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async updateUserRole(targetUserId: number, role: string) {
+    const normalizedRole = String(role || '').trim().toUpperCase();
+
+    if (!['USER', 'ADMIN'].includes(normalizedRole)) {
+      throw new BadRequestException('Role invalida.');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario nao encontrado.');
+    }
+
+    return this.prisma.user.update({
+      where: { id: targetUserId },
+      data: { role: normalizedRole },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+        role: true,
+        createdAt: true,
       },
     });
   }

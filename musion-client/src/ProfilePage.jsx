@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useParams, useNavigate, useOutletContext } from 'react-router-dom';
+import { IoChatbubbleOutline, IoEllipsisVertical, IoShareSocialOutline } from 'react-icons/io5';
 import api from './api';
 import './ProfilePage.css';
 import ReviewModal from './ReviewModal';
+import { blockUser, reportTarget } from './moderation';
+import { shareReview } from './shareReview';
 
 function ProfilePage() {
   const { id } = useParams();
@@ -24,6 +27,7 @@ function ProfilePage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewToEdit, setReviewToEdit] = useState(null);
   const [openReviewMenuId, setOpenReviewMenuId] = useState(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   // Upload de Foto / Visualizar imagem
   const fileInputRef = useRef(null);
@@ -33,22 +37,56 @@ function ProfilePage() {
   // Modal de imagem do perfil
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [imageToShow, setImageToShow] = useState('');
+  const [peopleModal, setPeopleModal] = useState({
+    open: false,
+    title: '',
+    users: [],
+    loading: false,
+  });
+  const isLoggedIn = Boolean(localStorage.getItem('musion_token'));
+
+  const requireLogin = () => {
+    if (isLoggedIn) return true;
+    navigate('/login');
+    return false;
+  };
 
   // --- CARREGAR DADOS ---
   const loadData = async () => {
+    setLoading(true);
+    setError('');
+
     try {
-      const meResponse = await api.get('/users/me');
-      setCurrentUser(meResponse.data);
+      let me = null;
+      let hasValidSession = isLoggedIn;
+
+      if (isLoggedIn) {
+        try {
+          const meResponse = await api.get('/users/me');
+          me = meResponse.data;
+          setCurrentUser(me);
+        } catch {
+          hasValidSession = false;
+          setCurrentUser(null);
+        }
+      } else {
+        setCurrentUser(null);
+      }
 
       let profileData;
       let reviewsData;
 
-      if (id && Number(id) !== meResponse.data.id) {
-        const otherProfileRes = await api.get(`/users/profile/${id}`);
+      if (id && (!me || Number(id) !== me.id)) {
+        const otherProfileRes = await api.get(hasValidSession ? `/users/profile/${id}` : `/users/public/profile/${id}`);
         profileData = otherProfileRes.data;
         reviewsData = otherProfileRes.data.reviews || [];
       } else {
-        profileData = meResponse.data;
+        if (!me) {
+          navigate('/login');
+          return;
+        }
+
+        profileData = me;
         const myReviewsRes = await api.get('/reviews/me');
         reviewsData = myReviewsRes.data;
       }
@@ -65,11 +103,12 @@ function ProfilePage() {
 
   useEffect(() => {
     loadData();
-  }, [id, refreshTrigger]);
+  }, [id, refreshTrigger, isLoggedIn]);
 
   // --- FUNÇÕES DE AÇÃO ---
 
   const handleFollowToggle = async () => {
+    if (!requireLogin()) return;
     if (!profile) return;
     try {
       if (profile.isFollowing) {
@@ -92,7 +131,34 @@ function ProfilePage() {
     }
   };
 
+  const openPeopleModal = async (type) => {
+    if (!requireLogin()) return;
+    if (!profile?.id) return;
+
+    const title = type === 'followers' ? 'Seguidores' : 'Seguindo';
+    setPeopleModal({ open: true, title, users: [], loading: true });
+
+    try {
+      const response = await api.get(`/users/${profile.id}/${type}`);
+      setPeopleModal({ open: true, title, users: response.data || [], loading: false });
+    } catch {
+      setPeopleModal({ open: true, title, users: [], loading: false });
+    }
+  };
+
+  const handleBlockProfile = async () => {
+    if (!requireLogin()) return;
+    try {
+      const label = profile?.username ? `@${profile.username}` : 'usuário';
+      const blocked = await blockUser(profile.id, label);
+      if (blocked) navigate('/feed');
+    } catch {
+      alert('Não foi possível bloquear este usuário.');
+    }
+  };
+
   const openEditModal = () => {
+    if (!requireLogin()) return;
     if (!profile) return;
     setEditFormData({
       displayName: profile.displayName || profile.username,
@@ -133,7 +199,7 @@ const handleFileChange = async (event) => {
     setUploadError('');
 
     try {
-      // --- AQUI ESTA A CORREÇÃO: api.patch ---
+      // --- AQUI ESTÁ A CORREÇÃO: api.patch ---
       // Seu backend está esperando @Patch('me/avatar')
       const response = await api.patch('/users/me/avatar', formData, {
         headers: {
@@ -179,7 +245,11 @@ const handleFileChange = async (event) => {
   const handleEditReview = (review) => { setReviewToEdit(review); setIsReviewModalOpen(true); setOpenReviewMenuId(null); };
   const handleDeleteReview = async (reviewId) => {
     if (!window.confirm('Excluir review?')) return;
-    try { await api.delete(`/reviews/${reviewId}`); setReviews(reviews.filter(r => r.id !== reviewId)); setOpenReviewMenuId(null); } catch (error) { alert('Erro ao excluir.'); }
+    try {
+      await api.delete(`/reviews/${reviewId}`);
+      setReviews(reviews.filter(r => (r.id || r.reviewId) !== reviewId));
+      setOpenReviewMenuId(null);
+    } catch (error) { alert('Erro ao excluir.'); }
   };
 
   const handleReviewSaved = () => loadData();
@@ -222,8 +292,14 @@ const handleFileChange = async (event) => {
             />
             <div className="profile-stats">
               <div className="stat-item"><span className="stat-number">{reviews.length}</span><span className="stat-label">Reviews</span></div>
-              <div className="stat-item"><span className="stat-number">{profile._count?.followers || 0}</span><span className="stat-label">Seguidores</span></div>
-              <div className="stat-item"><span className="stat-number">{profile._count?.following || 0}</span><span className="stat-label">Seguindo</span></div>
+              <button className="stat-item stat-button" onClick={() => openPeopleModal('followers')}>
+                <span className="stat-number">{profile._count?.followers || 0}</span>
+                <span className="stat-label">Seguidores</span>
+              </button>
+              <button className="stat-item stat-button" onClick={() => openPeopleModal('following')}>
+                <span className="stat-number">{profile._count?.following || 0}</span>
+                <span className="stat-label">Seguindo</span>
+              </button>
             </div>
           </div>
           <div className="profile-name-line">
@@ -232,16 +308,55 @@ const handleFileChange = async (event) => {
               <span className="profile-username-tag">@{profile.username}</span>
             </div>
 
-            {isOwnProfile ? (
-              <button className="edit-profile-button" onClick={openEditModal}>Editar Perfil</button>
-            ) : (
-              <button
-                className={`follow-button ${profile.isFollowing ? 'following' : ''}`}
-                onClick={handleFollowToggle}
-              >
-                {profile.isFollowing ? 'Seguindo' : 'Seguir'}
-              </button>
-            )}
+            <div className="profile-actions">
+              {isOwnProfile ? (
+                <>
+                  <button className="edit-profile-button" onClick={openEditModal}>Editar perfil</button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className={`follow-button ${profile.isFollowing ? 'following' : ''}`}
+                    onClick={handleFollowToggle}
+                  >
+                    {profile.isFollowing ? 'Seguindo' : 'Seguir'}
+                  </button>
+                  <button
+                    className="profile-secondary-button"
+                    onClick={() => {
+                      if (!requireLogin()) return;
+                      navigate('/chat', { state: { user: profile } });
+                    }}
+                  >
+                    Chat
+                  </button>
+                  <div className="menu-wrapper" onClick={(event) => event.stopPropagation()}>
+                    <button
+                      className="options-button"
+                      onClick={() => setProfileMenuOpen((value) => !value)}
+                      title="Opções"
+                    >
+                      <IoEllipsisVertical />
+                    </button>
+                    {profileMenuOpen && (
+                      <div className="review-dropdown-menu">
+                        <button
+                          onClick={() => {
+                            if (!requireLogin()) return;
+                            reportTarget('USER', profile.id, 'usuário');
+                          }}
+                        >
+                          Denunciar
+                        </button>
+                        <button className="delete-btn" onClick={handleBlockProfile}>
+                          Bloquear usuário
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <p className="profile-bio">{profile.bio || 'Sem bio.'}</p>
         </div>
@@ -251,8 +366,20 @@ const handleFileChange = async (event) => {
       <div className="feed-main-wrapper">
         <h3>Reviews</h3>
         {reviews.length === 0 && <p>Nenhuma review encontrada.</p>}
-        {reviews.map((review) => (
-          <div key={review.id} className="review-card">
+        {reviews.map((review) => {
+          const reviewId = review.id || review.reviewId;
+          const reviewWithUser = {
+            ...review,
+            reviewId,
+            user: {
+              displayName: profile.displayName,
+              username: profile.username,
+              avatarUrl: profile.avatarUrl,
+            },
+          };
+
+          return (
+          <div key={reviewId} className="review-card">
             <div className="review-author-header">
               <div className="review-author-left">
                 <img
@@ -267,29 +394,41 @@ const handleFileChange = async (event) => {
               </div>
               <div className="feed-header-right">
                 <span className="feed-timestamp">{formatTime(review.createdAt)}</span>
-                {isOwnProfile && (
-                  <div className="menu-wrapper">
-                    <button
-                      className="options-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenReviewMenuId(openReviewMenuId === review.id ? null : review.id);
-                      }}
-                    >
-                      &#x22EE;
-                    </button>
-                    {openReviewMenuId === review.id && (
-                      <div className="review-dropdown-menu">
-                        <button onClick={() => handleEditReview(review)}>Editar</button>
-                        <button onClick={() => handleDeleteReview(review.id)} className="delete-btn">Excluir</button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="menu-wrapper" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    className="options-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenReviewMenuId(openReviewMenuId === reviewId ? null : reviewId);
+                    }}
+                    title="Opções"
+                  >
+                    <IoEllipsisVertical />
+                  </button>
+                  {openReviewMenuId === reviewId && (
+                    <div className="review-dropdown-menu">
+                      {isOwnProfile ? (
+                        <>
+                          <button onClick={() => handleEditReview(review)}>Editar</button>
+                          <button onClick={() => handleDeleteReview(reviewId)} className="delete-btn">Excluir</button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            if (!requireLogin()) return;
+                            reportTarget('REVIEW', reviewId, 'review');
+                          }}
+                        >
+                          Denunciar
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="review-card-body">
+            <div className="review-card-body clickable-review-body" onClick={() => navigate(`/post/${reviewId}`)}>
               <img src={review.albumCover} alt={review.albumName} className="review-album-cover" />
               <div className="review-details">
                 <div className="review-header">
@@ -311,14 +450,15 @@ const handleFileChange = async (event) => {
               <button
                 className={`like-button ${review.isLiked ? 'liked' : ''}`}
                 onClick={async () => {
+                  if (!requireLogin()) return;
                   setReviews(prev =>
                     prev.map(r =>
-                      r.id === review.id
+                      (r.id || r.reviewId) === reviewId
                         ? { ...r, isLiked: !r.isLiked, likeCount: r.isLiked ? r.likeCount - 1 : r.likeCount + 1 }
                         : r
                     )
                   );
-                  try { await api.post(`/dashboard/review/${review.id}/like`); } catch (e) {}
+                  try { await api.post(`/dashboard/review/${reviewId}/like`); } catch (e) {}
                 }}
               >
                 <svg
@@ -336,8 +476,19 @@ const handleFileChange = async (event) => {
               </button>
               <span className="like-count">{review.likeCount > 0 ? review.likeCount : ''}</span>
             </div>
+
+            <div className="review-action-row">
+              <button className="review-icon-action" onClick={() => navigate(`/post/${reviewId}`)} title="Comentários">
+                <IoChatbubbleOutline />
+                <span>{review.commentCount || 0}</span>
+              </button>
+              <button className="review-icon-action" onClick={() => shareReview(reviewWithUser)} title="Compartilhar">
+                <IoShareSocialOutline />
+              </button>
+            </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Modal de edição de perfil */}
@@ -345,7 +496,7 @@ const handleFileChange = async (event) => {
         <div className="edit-modal-overlay" onClick={() => setIsEditModalOpen(false)}>
           <div className="edit-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="edit-modal-close" onClick={() => setIsEditModalOpen(false)}>&times;</button>
-            <h3>Editar Perfil</h3>
+            <h3>Editar perfil</h3>
             <div className="avatar-upload-section">
               <img
                 src={profile.avatarUrl || 'https://i.stack.imgur.com/l60Hf.png'}
@@ -354,7 +505,7 @@ const handleFileChange = async (event) => {
                 onClick={handleUploadClick}
               />
               <button className="avatar-modal-upload-btn" onClick={handleUploadClick} disabled={isUploading}>
-                {isUploading ? '...' : 'Alterar Foto'}
+                {isUploading ? '...' : 'Alterar foto'}
               </button>
             </div>
             <form className="edit-text-form" onSubmit={handleFormSubmit}>
@@ -377,11 +528,50 @@ const handleFileChange = async (event) => {
         />
       )}
 
+      {peopleModal.open && (
+        <div
+          className="edit-modal-overlay"
+          onClick={() => setPeopleModal({ open: false, title: '', users: [], loading: false })}
+        >
+          <div className="people-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="edit-modal-close"
+              onClick={() => setPeopleModal({ open: false, title: '', users: [], loading: false })}
+            >
+              &times;
+            </button>
+            <h3>{peopleModal.title}</h3>
+            {peopleModal.loading && <p className="people-empty">Carregando...</p>}
+            {!peopleModal.loading && peopleModal.users.length === 0 && (
+              <p className="people-empty">Nada por aqui ainda.</p>
+            )}
+            <div className="people-list">
+              {peopleModal.users.map((user) => (
+                <button
+                  key={user.id}
+                  className="people-row"
+                  onClick={() => {
+                    setPeopleModal({ open: false, title: '', users: [], loading: false });
+                    navigate(`/profile/${user.id}`);
+                  }}
+                >
+                  <img src={user.avatarUrl || 'https://i.stack.imgur.com/l60Hf.png'} alt="" />
+                  <span>
+                    <strong>{user.displayName || user.username}</strong>
+                    <small>@{user.username}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de imagem maximizada */}
       {isImageModalOpen && (
         <div className="image-modal-overlay" onClick={() => setIsImageModalOpen(false)}>
           <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
-            <img src={imageToShow} alt="Imagem do Perfil" className="image-modal-img" />
+            <img src={imageToShow} alt="Imagem do perfil" className="image-modal-img" />
           </div>
         </div>
       )}

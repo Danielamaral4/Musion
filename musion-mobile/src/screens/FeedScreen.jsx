@@ -121,12 +121,12 @@ export function FeedScreen({ navigation, route }) {
     setOptionsModalVisible(false);
     setTimeout(() => {
       Alert.alert(
-        "Excluir Review",
-        "Tem certeza que deseja excluir esta review? Essa ação não pode ser desfeita.",
+        "Excluir review",
+        "Tem certeza de que deseja excluir esta review? Essa ação não pode ser desfeita.",
         [
           { text: "Cancelar", style: "cancel" },
           { 
-            text: "Sim, Excluir", 
+            text: "Sim, excluir", 
             style: "destructive", 
             onPress: () => confirmDeleteAction(selectedReview.reviewId) 
           }
@@ -408,19 +408,19 @@ const renderItem = ({ item }) => {
               <>
                 <TouchableOpacity style={styles.sheetActionRow} onPress={handleEditOption}>
                   <Ionicons name="pencil-outline" size={22} color="#DEE0E8" />
-                  <Text style={styles.sheetActionText}>Editar Review</Text>
+                  <Text style={styles.sheetActionText}>Editar review</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.sheetActionRow, styles.sheetActionRowNoBorder]} onPress={handleDeleteOption}>
                   <Ionicons name="trash-outline" size={22} color="#F20505" />
-                  <Text style={[styles.sheetActionText, { color: '#F20505' }]}>Excluir Review</Text>
+                  <Text style={[styles.sheetActionText, { color: '#F20505' }]}>Excluir review</Text>
                 </TouchableOpacity>
               </>
             ) : (
               <>
                 <TouchableOpacity style={styles.sheetActionRow} onPress={handleReportOption}>
                   <Ionicons name="flag-outline" size={22} color="#DEE0E8" />
-                  <Text style={styles.sheetActionText}>Denunciar Review</Text>
+                  <Text style={styles.sheetActionText}>Denunciar review</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.sheetActionRow, styles.sheetActionRowNoBorder]} onPress={handleBlockOption}>

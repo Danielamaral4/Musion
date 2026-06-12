@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -192,6 +193,22 @@ export class ChatController {
     });
 
     return messages.map((message) => this.formatMessage(message, currentUserId));
+  }
+
+  @Delete('conversations/:userId')
+  async deleteConversation(@Request() req, @Param('userId') userIdParam: string) {
+    const currentUserId = this.getCurrentUserId(req);
+    const otherUserId = Number(userIdParam);
+
+    if (!currentUserId || !otherUserId || currentUserId === otherUserId) {
+      throw new BadRequestException('Usuario invalido.');
+    }
+
+    await this.prisma.chat.deleteMany({
+      where: { sessionId: makeSessionId(currentUserId, otherUserId) },
+    });
+
+    return { deleted: true };
   }
 
   @Post('messages/:userId')

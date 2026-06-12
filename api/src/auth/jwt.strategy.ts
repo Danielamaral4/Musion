@@ -32,7 +32,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Se passou, sabemos que payload.sub existe e é o ID.
     return { 
       id: payload.sub, // <-- Transforma 'sub' (lido) em 'id' (para o controller)
-      username: payload.username 
+      username: payload.username,
+      role: payload.role,
     };
   }
 }

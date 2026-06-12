@@ -24,9 +24,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url || '';
+    const isAuthRequest = requestUrl.startsWith('/auth/');
+    const currentPath = window.location.pathname;
+    const isPublicReadablePage =
+      currentPath === '/' ||
+      currentPath.startsWith('/album/') ||
+      /^\/profile\/\d+/.test(currentPath);
+
+    if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem('musion_token');
-      window.location.href = '/login';
+      if (!isPublicReadablePage) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

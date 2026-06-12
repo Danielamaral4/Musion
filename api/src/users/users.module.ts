@@ -7,6 +7,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { CloudinaryService } from '../cloudinary.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ModerationModule } from '../moderation/moderation.module';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { ModerationModule } from '../moderation/moderation.module';
     ModerationModule,
   ], 
   controllers: [UsersController],
-  providers: [UsersService, CloudinaryService],
+  providers: [UsersService, CloudinaryService, AdminGuard],
   exports: [UsersService],
 })
 export class UsersModule {}

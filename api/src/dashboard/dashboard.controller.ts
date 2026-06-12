@@ -7,6 +7,11 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   // --- DASHBOARD PRINCIPAL ---
+  @Get('public')
+  getPublicDashboard() {
+    return this.dashboardService.getDashboardData(null);
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Get()
   getDashboard(@Request() req) {

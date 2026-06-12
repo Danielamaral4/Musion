@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { IoChatbubbleOutline, IoEllipsisVertical, IoShareSocialOutline } from 'react-icons/io5';
 import api from './api';
 import './ProfilePage.css';
 import ReviewModal from './ReviewModal';
+import { blockUser, reportTarget } from './moderation';
+import { shareReview } from './shareReview';
 
 function Feed() {
+  const navigate = useNavigate();
   const [feedData, setFeedData] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -61,6 +65,17 @@ function Feed() {
       setFeedData(prev => prev.filter(item => item.reviewId !== reviewId));
     } catch (error) {
       alert("Erro ao excluir.");
+    }
+  };
+
+  const handleBlock = async (item) => {
+    try {
+      const blocked = await blockUser(item.userId, item.user?.username ? `@${item.user.username}` : 'usuário');
+      if (blocked) {
+        setFeedData(prev => prev.filter(review => review.userId !== item.userId));
+      }
+    } catch {
+      alert('Não foi possível bloquear.');
     }
   };
 
@@ -136,25 +151,32 @@ function Feed() {
                   {/* AQUI ESTÁ A CORREÇÃO: 
                       Usamos item.isMine que vem direto do backend (certeza absoluta) 
                   */}
-                  {item.isMine && (
-                    <div className="menu-wrapper" onClick={(e) => e.stopPropagation()}>
-                        <button className="options-button" onClick={(e) => toggleMenu(e, item.reviewId)}>
-                            &#x22EE;
-                        </button>
-                        
-                        {openMenuId === item.reviewId && (
-                            <div className="review-dropdown-menu">
-                                <button onClick={() => handleEditReview(item)}>Editar</button>
-                                <button onClick={() => handleDeleteReview(item.reviewId)} className="delete-btn">Excluir</button>
-                            </div>
+                  <div className="menu-wrapper" onClick={(e) => e.stopPropagation()}>
+                    <button className="options-button" onClick={(e) => toggleMenu(e, item.reviewId)} title="Opções">
+                      <IoEllipsisVertical />
+                    </button>
+
+                    {openMenuId === item.reviewId && (
+                      <div className="review-dropdown-menu">
+                        {item.isMine ? (
+                          <>
+                            <button onClick={() => handleEditReview(item)}>Editar</button>
+                            <button onClick={() => handleDeleteReview(item.reviewId)} className="delete-btn">Excluir</button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => reportTarget('REVIEW', item.reviewId, 'review')}>Denunciar</button>
+                            <button onClick={() => handleBlock(item)} className="delete-btn">Bloquear usuário</button>
+                          </>
                         )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* BODY */}
-              <div className="review-card-body">
+              <div className="review-card-body clickable-review-body" onClick={() => navigate(`/post/${item.reviewId}`)}>
                 <img src={item.albumCover} alt={item.albumName} className="review-album-cover" />
                 <div className="review-details">
                   <div className="review-header">
@@ -167,7 +189,16 @@ function Feed() {
                 </div>
               </div>
 
-              {/* LIKE */}
+              <div className="review-action-row">
+                <button className="review-icon-action" onClick={() => navigate(`/post/${item.reviewId}`)} title="Comentários">
+                  <IoChatbubbleOutline />
+                  <span>{item.commentCount || 0}</span>
+                </button>
+                <button className="review-icon-action" onClick={() => shareReview(item)} title="Compartilhar">
+                  <IoShareSocialOutline />
+                </button>
+              </div>
+
               <div className="like-container">
                 <button className={`like-button ${likeInfo.isLiked ? 'liked' : ''}`} onClick={() => toggleLike(item.reviewId)}>
                   <svg className="like-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill={likeInfo.isLiked ? "#E91429" : "none"} stroke={likeInfo.isLiked ? "#E91429" : "#b3b3b3"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

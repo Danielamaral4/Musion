@@ -43,7 +43,7 @@ export default function SettingsScreen({ navigation }) {
     try {
       await Linking.openURL(`${api.defaults.baseURL}${path}`);
     } catch (error) {
-      Alert.alert('Erro', 'Nao foi possivel abrir a pagina.');
+      Alert.alert('Erro', 'Não foi possível abrir a página.');
     }
   };
 
@@ -84,7 +84,7 @@ export default function SettingsScreen({ navigation }) {
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Ops', 'A confirmacao da senha nao bate.');
+      Alert.alert('Ops', 'A confirmação da senha não confere.');
       return;
     }
 
@@ -101,7 +101,7 @@ export default function SettingsScreen({ navigation }) {
       setConfirmPassword('');
       Alert.alert('Pronto', 'Sua senha foi alterada.');
     } catch (error) {
-      Alert.alert('Erro', getErrorMessage(error, 'Nao foi possivel alterar a senha.'));
+      Alert.alert('Erro', getErrorMessage(error, 'Não foi possível alterar a senha.'));
     } finally {
       setChangingPassword(false);
     }
@@ -124,7 +124,7 @@ export default function SettingsScreen({ navigation }) {
       setDeletePassword('');
       await logoutAndGoToLogin();
     } catch (error) {
-      Alert.alert('Erro', getErrorMessage(error, 'Nao foi possivel excluir a conta.'));
+      Alert.alert('Erro', getErrorMessage(error, 'Não foi possível excluir a conta.'));
     } finally {
       setDeletingAccount(false);
     }
@@ -145,7 +145,7 @@ export default function SettingsScreen({ navigation }) {
             <Ionicons name="chevron-back" size={24} color="#DEE0E8" />
           </TouchableOpacity>
 
-          <Text style={styles.topBarTitle}>Configuracoes</Text>
+          <Text style={styles.topBarTitle}>Configurações</Text>
 
           <View style={styles.iconButtonPlaceholder} />
         </View>
@@ -178,7 +178,7 @@ export default function SettingsScreen({ navigation }) {
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry
-                placeholder="Minimo de 6 caracteres"
+                placeholder="Mínimo de 6 caracteres"
                 placeholderTextColor="rgba(222, 224, 232, 0.35)"
               />
             </View>
@@ -221,8 +221,8 @@ export default function SettingsScreen({ navigation }) {
                 <Ionicons name="shield-checkmark-outline" size={22} color="#DEE0E8" />
               </View>
               <View style={styles.actionTextBlock}>
-                <Text style={styles.actionTitle}>Politica de Privacidade</Text>
-                <Text style={styles.actionDescription}>Ver como seus dados sao tratados.</Text>
+                <Text style={styles.actionTitle}>Política de privacidade</Text>
+                <Text style={styles.actionDescription}>Ver como seus dados são tratados.</Text>
               </View>
               <Ionicons name="open-outline" size={20} color="rgba(222, 224, 232, 0.45)" />
             </TouchableOpacity>
@@ -236,8 +236,8 @@ export default function SettingsScreen({ navigation }) {
                 <Ionicons name="document-text-outline" size={22} color="#DEE0E8" />
               </View>
               <View style={styles.actionTextBlock}>
-                <Text style={styles.actionTitle}>Termos de Uso</Text>
-                <Text style={styles.actionDescription}>Regras de uso e moderacao.</Text>
+                <Text style={styles.actionTitle}>Termos de uso</Text>
+                <Text style={styles.actionDescription}>Regras de uso e moderação.</Text>
               </View>
               <Ionicons name="open-outline" size={20} color="rgba(222, 224, 232, 0.45)" />
             </TouchableOpacity>
@@ -251,15 +251,15 @@ export default function SettingsScreen({ navigation }) {
                 <Ionicons name="person-remove-outline" size={22} color="#DEE0E8" />
               </View>
               <View style={styles.actionTextBlock}>
-                <Text style={styles.actionTitle}>Exclusao de dados</Text>
-                <Text style={styles.actionDescription}>Solicitar exclusao sem acessar o app.</Text>
+                <Text style={styles.actionTitle}>Exclusão de dados</Text>
+                <Text style={styles.actionDescription}>Solicitar exclusão sem acessar o app.</Text>
               </View>
               <Ionicons name="open-outline" size={20} color="rgba(222, 224, 232, 0.45)" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Privacidade e Segurança</Text>
+            <Text style={styles.sectionTitle}>Privacidade e segurança</Text>
 
             <TouchableOpacity
               style={styles.actionRow}
@@ -313,7 +313,7 @@ export default function SettingsScreen({ navigation }) {
             <Pressable style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
               <Text style={styles.modalTitle}>Excluir conta</Text>
               <Text style={styles.modalText}>
-                Essa acao apaga seu perfil, reviews, comentarios, likes e conexoes. Digite sua senha para confirmar.
+                Essa ação apaga seu perfil, reviews, comentários, likes e conexões. Digite sua senha para confirmar.
               </Text>
 
               <TextInput

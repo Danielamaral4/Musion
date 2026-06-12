@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
+import { IoLogoAndroid } from 'react-icons/io5';
 import api from './api';
 import './Dashboard.css';
-import ChatWidget from './ChatWidget';
 
-const normalizeAlbum = (a) => ({
-  id: a.id || a.albumId || a._id,
-  name: a.name || a.albumName || 'Álbum Desconhecido',
-  artistName: a.artistName || a.albumArtist || a.artists?.[0]?.name || 'Artista Desconhecido',
-  imageUrl: a.imageUrl || a.albumCover || a.images?.[0]?.url || '',
-  rating: a.rating ?? null,
+const normalizeAlbum = (album) => ({
+  id: album.spotifyId || album.albumId || album.id || album._id,
+  name: album.name || album.albumName || 'Álbum desconhecido',
+  artistName: album.artistName || album.albumArtist || album.artists?.[0]?.name || 'Artista desconhecido',
+  imageUrl: album.imageUrl || album.albumCover || album.images?.[0]?.url || '',
+  rating: album.rating ?? null,
 });
 
 const getSafeRating = (rating) => {
@@ -20,10 +20,10 @@ const getSafeRating = (rating) => {
 };
 
 const getDynamicColorClass = (value) => {
-  const r = parseFloat(value);
-  if (isNaN(r)) return 'rating-gray';
-  if (r <= 3.9) return 'rating-red';
-  if (r <= 6.9) return 'rating-yellow';
+  const rating = parseFloat(value);
+  if (isNaN(rating)) return 'rating-gray';
+  if (rating <= 3.9) return 'rating-red';
+  if (rating <= 6.9) return 'rating-yellow';
   return 'rating-green';
 };
 
@@ -37,7 +37,7 @@ const SkeletonCard = () => (
 
 const SkeletonGrid = () => (
   <div className="album-grid">
-    {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+    {Array.from({ length: 5 }).map((_, index) => <SkeletonCard key={index} />)}
   </div>
 );
 
@@ -47,21 +47,17 @@ const AlbumGrid = ({ albums }) => {
   return (
     <div className="album-grid">
       {albums.map((album) => {
-        const n = normalizeAlbum(album);
-        const ratingVal = getSafeRating(n.rating);
+        const normalized = normalizeAlbum(album);
+        const ratingVal = getSafeRating(normalized.rating);
 
         return (
-          <Link 
-            to={`/album/${n.id}`} 
-            className="dash-card" 
-            key={n.id}
-          >
-            <img src={n.imageUrl || '/placeholder.png'} alt={n.name} />
+          <Link to={`/album/${normalized.id}`} className="dash-card" key={normalized.id}>
+            <img src={normalized.imageUrl || '/placeholder.png'} alt={normalized.name} />
 
             <div className="dash-info-row">
               <div className="dash-text-col">
-                <div className="dash-title">{n.name}</div>
-                <div className="dash-artist">{n.artistName}</div>
+                <div className="dash-title">{normalized.name}</div>
+                <div className="dash-artist">{normalized.artistName}</div>
               </div>
 
               <div className={`dash-rating-square ${getDynamicColorClass(ratingVal)}`}>
@@ -75,8 +71,9 @@ const AlbumGrid = ({ albums }) => {
   );
 };
 
-function Dashboard() {
+function Dashboard({ publicMode = false }) {
   const { refreshTrigger } = useOutletContext() || {};
+  const isLoggedIn = Boolean(localStorage.getItem('musion_token'));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recommendedByLast, setRecommendedByLast] = useState([]);
@@ -85,88 +82,241 @@ function Dashboard() {
   const [secondAlbumName, setSecondAlbumName] = useState(null);
   const [recommendedByThird, setRecommendedByThird] = useState([]);
   const [thirdAlbumName, setThirdAlbumName] = useState(null);
-
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const chatRef = useRef(null);
-
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userId = user.id || 'visitante';
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (chatRef.current && !chatRef.current.contains(e.target)) setIsChatOpen(false);
-    };
-    if (isChatOpen) document.addEventListener('mousedown', handleClickOutside);
-    else document.removeEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isChatOpen]);
+  const [recentRecommendations, setRecentRecommendations] = useState([]);
+  const [newReleases, setNewReleases] = useState([]);
+  const [publicSlide, setPublicSlide] = useState(0);
+  const [displayedPublicSlide, setDisplayedPublicSlide] = useState(0);
+  const [isPublicSlideFading, setIsPublicSlideFading] = useState(false);
+  const publicFadeTimeoutRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
-      try { 
-        const res = await api.get('/dashboard'); 
-        setData(res.data); 
-      } catch { setData(null); } 
-      finally { setLoading(false); }
+      try {
+        const response = await api.get(isLoggedIn ? '/dashboard' : '/dashboard/public');
+        setData(response.data);
+      } catch {
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+
       loadRecommendations();
     };
+
     load();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, isLoggedIn]);
 
   const loadRecommendations = async () => {
-    try { const last = await api.get('/dashboard/recommend/last'); setLastAlbumName(last.data.baseAlbumName); setRecommendedByLast(last.data.recommendations.slice(0,5)); } catch {}
-    try { const second = await api.get('/dashboard/recommend/second'); setSecondAlbumName(second.data.baseAlbumName); setRecommendedBySecond(second.data.recommendations.slice(0,5)); } catch {}
-    try { const third = await api.get('/dashboard/recommend/third'); setThirdAlbumName(third.data.baseAlbumName); setRecommendedByThird(third.data.recommendations.slice(0,5)); } catch {}
+    try {
+      const releases = await api.get('/spotify/new-releases');
+      setNewReleases((releases.data || []).slice(0, 5));
+    } catch {}
+
+    if (!isLoggedIn) return;
+
+    try {
+      const recent = await api.get('/dashboard/recommend/recent');
+      const last = recent.data?.last || {};
+      const second = recent.data?.second || {};
+      const third = recent.data?.third || {};
+
+      setRecentRecommendations([]);
+      setLastAlbumName(last.baseAlbumName || null);
+      setRecommendedByLast((last.recommendations || []).slice(0, 5));
+      setSecondAlbumName(second.baseAlbumName || null);
+      setRecommendedBySecond((second.recommendations || []).slice(0, 5));
+      setThirdAlbumName(third.baseAlbumName || null);
+      setRecommendedByThird((third.recommendations || []).slice(0, 5));
+    } catch {
+      setRecentRecommendations([]);
+      setRecommendedByLast([]);
+      setRecommendedBySecond([]);
+      setRecommendedByThird([]);
+    }
   };
 
-  if (!data && !loading)
+  const publicAlbums = (data?.topRated || []).map(normalizeAlbum).filter((album) => album.id);
+  const featuredAlbum = publicAlbums.length ? publicAlbums[displayedPublicSlide % publicAlbums.length] : null;
+
+  const goToPublicSlide = (nextSlide) => {
+    if (publicAlbums.length <= 1) return;
+
+    const normalizedNext = ((nextSlide % publicAlbums.length) + publicAlbums.length) % publicAlbums.length;
+    if (normalizedNext === publicSlide && normalizedNext === displayedPublicSlide) return;
+
+    setIsPublicSlideFading(true);
+    setPublicSlide(normalizedNext);
+
+    if (publicFadeTimeoutRef.current) {
+      clearTimeout(publicFadeTimeoutRef.current);
+    }
+
+    publicFadeTimeoutRef.current = setTimeout(() => {
+      setDisplayedPublicSlide(normalizedNext);
+      setIsPublicSlideFading(false);
+    }, 280);
+  };
+
+  useEffect(() => {
+    if (!publicMode || publicAlbums.length <= 1) return;
+
+    const timer = setInterval(() => {
+      goToPublicSlide(publicSlide + 1);
+    }, 6800);
+
+    return () => clearInterval(timer);
+  }, [publicMode, publicAlbums.length, publicSlide, displayedPublicSlide]);
+
+  useEffect(() => {
+    if (!publicAlbums.length) return;
+
+    if (displayedPublicSlide >= publicAlbums.length) {
+      setDisplayedPublicSlide(0);
+      setPublicSlide(0);
+    }
+  }, [publicAlbums.length, displayedPublicSlide]);
+
+  useEffect(() => () => {
+    if (publicFadeTimeoutRef.current) {
+      clearTimeout(publicFadeTimeoutRef.current);
+    }
+  }, []);
+
+  if (!data && !loading) {
     return <div className="loading-screen">Avalie alguns álbuns para começar!</div>;
+  }
+
+  if (publicMode) {
+    const ratingVal = getSafeRating(featuredAlbum?.rating);
+    const featuredImage = featuredAlbum?.imageUrl || '/placeholder.png';
+
+    return (
+      <div
+        className="dashboard-container public-dashboard"
+        style={{ '--public-album-bg': `url(${featuredImage})` }}
+      >
+        <section className="public-spotlight-section">
+          {loading ? (
+            <div className="public-spotlight-skeleton" />
+          ) : featuredAlbum ? (
+            <div className={`public-spotlight-card ${isPublicSlideFading ? 'is-dissolving' : ''}`}>
+              <div
+                className="public-spotlight-blur"
+                style={{ backgroundImage: `url(${featuredImage})` }}
+              />
+
+              <button
+                className="public-carousel-control public-carousel-prev"
+                type="button"
+                onClick={() => goToPublicSlide(publicSlide - 1)}
+                aria-label="Álbum anterior"
+              >
+                {'<'}
+              </button>
+
+              <Link to={`/album/${featuredAlbum.id}`} className="public-featured-cover-link">
+                <img src={featuredImage} alt={featuredAlbum.name} className="public-featured-cover" />
+              </Link>
+
+              <div className="public-featured-info">
+                <p className="public-featured-kicker">Aclamado no Musion</p>
+                <div className="public-featured-title-row">
+                  <div>
+                    <h1>{featuredAlbum.name}</h1>
+                    <p>{featuredAlbum.artistName}</p>
+                  </div>
+                  <div className={`public-featured-rating ${getDynamicColorClass(ratingVal)}`}>
+                    {ratingVal || '-'}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className="public-carousel-control public-carousel-next"
+                type="button"
+                onClick={() => goToPublicSlide(publicSlide + 1)}
+                aria-label="Próximo álbum"
+              >
+                {'>'}
+              </button>
+            </div>
+          ) : (
+            <div className="public-spotlight-empty">Nenhum álbum em destaque ainda.</div>
+          )}
+        </section>
+
+        <section className="public-copy-section">
+          <h2>Registre os álbuns que marcaram você.</h2>
+          <p>Salve o que ainda quer ouvir. Compartilhe suas notas. Descubra a próxima obsessão antes dela virar consenso.</p>
+          <Link to="/register" className="public-cta-button">Comece agora</Link>
+          <div className="public-app-note">
+            <span>Uma rede social para amantes de música.</span>
+            <span className="public-android-line">
+              Também disponível em <IoLogoAndroid aria-hidden="true" />
+            </span>
+          </div>
+        </section>
+
+        <footer className="public-footer">
+          <div className="public-footer-brand">Musion</div>
+          <nav aria-label="Links institucionais">
+            <a href="#quem-somos">Quem somos</a>
+            <a href="#privacidade">Política de privacidade</a>
+            <a href="#sobre">Sobre</a>
+            <a href="#ajuda">Ajuda</a>
+            <a href="mailto:musionoficial@outlook.com">Contato</a>
+          </nav>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
       <section>
-        <div className="section-title">Em Alta no Musion</div>
+        <div className="section-title">Em alta no Musion</div>
         {loading ? <SkeletonGrid /> : <AlbumGrid albums={data?.popular} />}
       </section>
 
       <section>
-        <div className="section-title">Aclamação da Crítica</div>
+        <div className="section-title">Aclamação da crítica</div>
         {loading ? <SkeletonGrid /> : <AlbumGrid albums={data?.topRated} />}
       </section>
 
-      {recommendedByLast?.length > 0 && (
+      {newReleases?.length > 0 && (
         <section>
-          <div className="section-title">Porque você curtiu <span className='recommended-Name'>{lastAlbumName}</span></div>
-          <AlbumGrid albums={recommendedByLast} />
-        </section>
-      )}
-      {recommendedBySecond?.length > 0 && (
-        <section>
-          <div className="section-title">Porque você também curtiu <span className='recommended-Name'>{secondAlbumName}</span></div>
-          <AlbumGrid albums={recommendedBySecond} />
-        </section>
-      )}
-      {recommendedByThird?.length > 0 && (
-        <section>
-          <div className="section-title">Porque você gostou de <span className='recommended-Name'>{thirdAlbumName}</span></div>
-          <AlbumGrid albums={recommendedByThird} />
+          <div className="section-title">Lançamentos da semana</div>
+          <AlbumGrid albums={newReleases} />
         </section>
       )}
 
-      <div className="chat-fixed-container" ref={chatRef}>
-        {isChatOpen && <ChatWidget sessionId={`session-${userId}`} />}
-        <button className="chat-toggle-btn" onClick={() => setIsChatOpen(!isChatOpen)}>
-          {isChatOpen ? (
-            <svg className="icon-close" viewBox="0 0 24 24">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24" className="chat-icon">
-              <path d="M51.9 384.9C19.3 344.6 0 294.4 0 240 0 107.5 114.6 0 256 0S512 107.5 512 240 397.4 480 256 480c-36.5 0-71.2-7.2-102.6-20L37 509.9c-3.7 1.6-7.5 2.1-11.5 2.1-14.1 0-25.5-11.4-25.5-25.5 0-4.3 1.1-8.5 3.1-12.2l48.8-89.4zm37.3-30.2c12.2 15.1 14.1 36.1 4.8 53.2l-18 33.1 58.5-25.1c11.8-5.1 25.2-5.2 37.1-.3 25.7 10.5 54.2 16.4 84.3 16.4 117.8 0 208-88.8 208-192S373.8 48 256 48 48 136.8 48 240c0 42.8 15.1 82.4 41.2 114.7z" fill="currentColor"/>
-            </svg>
-          )}
-        </button>
-      </div>
+      {recentRecommendations?.length > 0 && (
+        <section>
+          <div className="section-title">Recomendado para você</div>
+          <AlbumGrid albums={recentRecommendations} />
+        </section>
+      )}
+
+      {recommendedByLast?.length > 0 && (
+        <section>
+          <div className="section-title">Por ter curtido <span className="recommended-Name">{lastAlbumName}</span></div>
+          <AlbumGrid albums={recommendedByLast} />
+        </section>
+      )}
+
+      {recommendedBySecond?.length > 0 && (
+        <section>
+          <div className="section-title">Por também ter curtido <span className="recommended-Name">{secondAlbumName}</span></div>
+          <AlbumGrid albums={recommendedBySecond} />
+        </section>
+      )}
+
+      {recommendedByThird?.length > 0 && (
+        <section>
+          <div className="section-title">Por ter gostado de <span className="recommended-Name">{thirdAlbumName}</span></div>
+          <AlbumGrid albums={recommendedByThird} />
+        </section>
+      )}
     </div>
   );
 }

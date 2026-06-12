@@ -2,17 +2,17 @@ import { Alert } from 'react-native';
 import api from './api';
 
 const reasonOptions = [
-  { label: 'Assedio ou ataque', value: 'HARASSMENT' },
-  { label: 'Discurso de odio', value: 'HATE' },
+  { label: 'Assédio ou ataque', value: 'HARASSMENT' },
+  { label: 'Discurso de ódio', value: 'HATE' },
   { label: 'Spam ou golpe', value: 'SPAM' },
-  { label: 'Conteudo ofensivo', value: 'OFFENSIVE' },
+  { label: 'Conteúdo ofensivo', value: 'OFFENSIVE' },
   { label: 'Outro motivo', value: 'OTHER' },
 ];
 
 const targetLabels = {
-  USER: 'usuario',
+  USER: 'usuário',
   REVIEW: 'review',
-  COMMENT: 'comentario',
+  COMMENT: 'comentário',
 };
 
 const getErrorMessage = (error, fallback) => {
@@ -25,9 +25,9 @@ const getErrorMessage = (error, fallback) => {
 };
 
 export const openReportPrompt = ({ targetType, targetId, onSuccess }) => {
-  const targetLabel = targetLabels[targetType] || 'conteudo';
+  const targetLabel = targetLabels[targetType] || 'conteúdo';
 
-  Alert.alert(`Denunciar ${targetLabel}`, 'Escolha o motivo da denuncia.', [
+  Alert.alert(`Denunciar ${targetLabel}`, 'Escolha o motivo da denúncia.', [
     { text: 'Cancelar', style: 'cancel' },
     ...reasonOptions.map((reason) => ({
       text: reason.label,
@@ -39,10 +39,10 @@ export const openReportPrompt = ({ targetType, targetId, onSuccess }) => {
             reason: reason.value,
           });
 
-          Alert.alert('Obrigado', 'Sua denuncia foi registrada para analise.');
+          Alert.alert('Obrigado', 'Sua denúncia foi registrada para análise.');
           onSuccess?.();
         } catch (error) {
-          Alert.alert('Erro', getErrorMessage(error, 'Nao foi possivel registrar a denuncia.'));
+          Alert.alert('Erro', getErrorMessage(error, 'Não foi possível registrar a denúncia.'));
         }
       },
     })),
@@ -53,8 +53,8 @@ export const confirmBlockUser = ({ userId, username, onSuccess }) => {
   if (!userId) return;
 
   Alert.alert(
-    'Bloquear usuario',
-    `Bloquear ${username ? `@${username}` : 'este usuario'}? Voces nao verao mais conteudos um do outro.`,
+    'Bloquear usuário',
+    `Bloquear ${username ? `@${username}` : 'este usuário'}? Vocês não verão mais conteúdos um do outro.`,
     [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -63,10 +63,10 @@ export const confirmBlockUser = ({ userId, username, onSuccess }) => {
         onPress: async () => {
           try {
             await api.post(`/moderation/blocks/${userId}`);
-            Alert.alert('Usuario bloqueado', 'O conteudo desse usuario sera ocultado.');
+            Alert.alert('Usuário bloqueado', 'O conteúdo desse usuário será ocultado.');
             onSuccess?.();
           } catch (error) {
-            Alert.alert('Erro', getErrorMessage(error, 'Nao foi possivel bloquear o usuario.'));
+            Alert.alert('Erro', getErrorMessage(error, 'Não foi possível bloquear o usuário.'));
           }
         },
       },
@@ -78,8 +78,8 @@ export const confirmUnblockUser = ({ userId, username, onSuccess }) => {
   if (!userId) return;
 
   Alert.alert(
-    'Desbloquear usuario',
-    `Desbloquear ${username ? `@${username}` : 'este usuario'}?`,
+    'Desbloquear usuário',
+    `Desbloquear ${username ? `@${username}` : 'este usuário'}?`,
     [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -87,10 +87,10 @@ export const confirmUnblockUser = ({ userId, username, onSuccess }) => {
         onPress: async () => {
           try {
             await api.delete(`/moderation/blocks/${userId}`);
-            Alert.alert('Pronto', 'Usuario desbloqueado.');
+            Alert.alert('Pronto', 'Usuário desbloqueado.');
             onSuccess?.();
           } catch (error) {
-            Alert.alert('Erro', getErrorMessage(error, 'Nao foi possivel desbloquear o usuario.'));
+            Alert.alert('Erro', getErrorMessage(error, 'Não foi possível desbloquear o usuário.'));
           }
         },
       },

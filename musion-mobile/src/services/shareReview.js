@@ -12,7 +12,7 @@ const getAuthorName = (review = {}) =>
   review.user?.username ||
   review.displayName ||
   review.username ||
-  'um usuario';
+  'um usuário';
 
 const getAuthorUsername = (review = {}) => {
   const username = review.user?.username || review.username || '';
@@ -20,7 +20,7 @@ const getAuthorUsername = (review = {}) => {
 };
 
 export const normalizeReviewForShare = (review = {}) => {
-  const albumName = review.albumName || review.album?.name || 'Album';
+  const albumName = review.albumName || review.album?.name || 'Álbum';
   const artistName =
     review.albumArtist ||
     review.artistName ||

@@ -271,14 +271,14 @@ export function AlbumDetailsScreen({ route, navigation }) {
       return;
     }
 
-    Alert.alert('Opções do Review', 'O que você deseja fazer?', [
+    Alert.alert('Opções da review', 'O que você deseja fazer?', [
       { text: 'Cancelar', style: 'cancel' },
       {
-        text: 'Compartilhar como Story',
+        text: 'Compartilhar como story',
         onPress: () => shareReviewCard(getReviewData(review)),
       },
       {
-        text: 'Denunciar Review',
+        text: 'Denunciar review',
         onPress: () =>
           openReportPrompt({
             targetType: 'REVIEW',
@@ -437,7 +437,7 @@ export function AlbumDetailsScreen({ route, navigation }) {
               <TouchableOpacity style={styles.reviewButton} onPress={openReviewForm} activeOpacity={0.82}>
               <Ionicons name="pencil" size={18} color="#18191D" />
               <Text style={styles.reviewButtonText}>
-                {myReview ? 'Editar Avaliação' : 'Avaliar Álbum'}
+                {myReview ? 'Editar avaliação' : 'Avaliar álbum'}
               </Text>
               </TouchableOpacity>
 
@@ -493,7 +493,7 @@ export function AlbumDetailsScreen({ route, navigation }) {
         </View>
 
         <View style={[styles.sectionContainer, styles.communityReviewsSection, { paddingHorizontal: 0 }]}>
-          <Text style={[styles.sectionTitle, { marginLeft: 16 }]}>Reviews da Comunidade</Text>
+          <Text style={[styles.sectionTitle, { marginLeft: 16 }]}>Reviews da comunidade</Text>
 
           {reviews.length === 0 ? (
             <Text style={styles.emptyText}>Seja o primeiro a avaliar este álbum!</Text>

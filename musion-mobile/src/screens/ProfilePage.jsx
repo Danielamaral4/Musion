@@ -203,7 +203,7 @@ export default function ProfilePage({ navigation, route }) {
 
     const buttons = [
       {
-        text: 'Denunciar Perfil',
+        text: 'Denunciar perfil',
         onPress: () =>
           openReportPrompt({
             targetType: 'USER',
@@ -214,7 +214,7 @@ export default function ProfilePage({ navigation, route }) {
 
     if (profile.isBlocked) {
       buttons.push({
-        text: 'Desbloquear Usuário',
+        text: 'Desbloquear usuário',
         onPress: () =>
           confirmUnblockUser({
             userId: profile.id,
@@ -224,7 +224,7 @@ export default function ProfilePage({ navigation, route }) {
       });
     } else {
       buttons.push({
-        text: 'Bloquear Usuário',
+        text: 'Bloquear usuário',
         style: 'destructive',
         onPress: () =>
           confirmBlockUser({
@@ -262,7 +262,7 @@ export default function ProfilePage({ navigation, route }) {
 
       setFollowUsers(response.data || []);
     } catch (error) {
-      console.error('Erro ao carregar lista de usuarios:', error);
+      console.error('Erro ao carregar lista de usuários:', error);
     } finally {
       setLoadingFollowUsers(false);
     }
@@ -324,7 +324,7 @@ export default function ProfilePage({ navigation, route }) {
     return;
 
     Alert.alert(
-      "Opções do Review",
+      "Opções da review",
       "O que você deseja fazer?",
       [
         { text: "Cancelar", style: "cancel" },
@@ -376,8 +376,8 @@ export default function ProfilePage({ navigation, route }) {
 
     setTimeout(() => {
       Alert.alert(
-        'Excluir Review',
-        'Tem certeza que deseja excluir esta review? Essa acao nao pode ser desfeita.',
+        'Excluir review',
+        'Tem certeza de que deseja excluir esta review? Essa ação não pode ser desfeita.',
         [
           { text: 'Cancelar', style: 'cancel' },
           {
@@ -698,7 +698,7 @@ export default function ProfilePage({ navigation, route }) {
 
             <TouchableOpacity style={styles.sheetActionRow} onPress={handleEditOption}>
               <Ionicons name="pencil-outline" size={22} color="#DEE0E8" />
-              <Text style={styles.sheetActionText}>Editar Review</Text>
+              <Text style={styles.sheetActionText}>Editar review</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -707,7 +707,7 @@ export default function ProfilePage({ navigation, route }) {
             >
               <Ionicons name="trash-outline" size={22} color="#F20505" />
               <Text style={[styles.sheetActionText, { color: '#F20505' }]}>
-                Excluir Review
+                Excluir review
               </Text>
             </TouchableOpacity>
           </Pressable>
@@ -782,7 +782,7 @@ export default function ProfilePage({ navigation, route }) {
               <Ionicons name="close" size={24} color="#7E818E" />
             </TouchableOpacity>
             
-            <Text style={styles.modalTitle}>Editar Perfil</Text>
+            <Text style={styles.modalTitle}>Editar perfil</Text>
 
             {/* Avatar e Botão de Trocar Foto */}
             <View style={styles.avatarUploadSection}>
@@ -838,7 +838,7 @@ export default function ProfilePage({ navigation, route }) {
 
             {/* Botão Salvar */}
             <TouchableOpacity style={styles.saveChangesButton} onPress={handleFormSubmit}>
-              <Text style={styles.btnTextDark}>Salvar Alterações</Text>
+              <Text style={styles.btnTextDark}>Salvar alterações</Text>
             </TouchableOpacity>
 
           </View>

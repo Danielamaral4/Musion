@@ -40,13 +40,13 @@ export function SearchScreen({ navigation }) {
         api
           .get('/spotify/search', { params: { q: searchQuery } })
           .then((res) => setAlbumResults(res.data))
-          .catch((err) => console.error('Erro na busca de albuns:', err))
+          .catch((err) => console.error('Erro na busca de álbuns:', err))
           .finally(() => setIsSearching(false));
       } else {
         api
           .get('/users/search', { params: { q: searchQuery } })
           .then((res) => setUserResults(res.data))
-          .catch((err) => console.error('Erro na busca de usuarios:', err))
+          .catch((err) => console.error('Erro na busca de usuários:', err))
           .finally(() => setIsSearching(false));
       }
     }, 400);
@@ -130,8 +130,8 @@ export function SearchScreen({ navigation }) {
             style={styles.searchInput}
             placeholder={
               activeTab === 'albums'
-                ? 'Qual album voce quer encontrar?'
-                : 'Qual usuario voce procura?'
+                ? 'Qual álbum você quer encontrar?'
+                : 'Qual usuário você procura?'
             }
             placeholderTextColor="#7E818E"
             autoFocus
@@ -154,7 +154,7 @@ export function SearchScreen({ navigation }) {
             onPress={() => setActiveTab('albums')}
           >
             <Text style={[styles.tabText, activeTab === 'albums' && styles.tabTextActive]}>
-              Albuns
+              Álbuns
             </Text>
           </TouchableOpacity>
 
@@ -163,7 +163,7 @@ export function SearchScreen({ navigation }) {
             onPress={() => setActiveTab('users')}
           >
             <Text style={[styles.tabText, activeTab === 'users' && styles.tabTextActive]}>
-              Usuarios
+              Usuários
             </Text>
           </TouchableOpacity>
         </View>
@@ -183,7 +183,7 @@ export function SearchScreen({ navigation }) {
             ListEmptyComponent={
               !isSearching && searchQuery ? (
                 <Text style={styles.noResults}>
-                  Nenhum {activeTab === 'albums' ? 'album' : 'usuario'} encontrado para "
+                  Nenhum {activeTab === 'albums' ? 'álbum' : 'usuário'} encontrado para "
                   {searchQuery}".
                 </Text>
               ) : null

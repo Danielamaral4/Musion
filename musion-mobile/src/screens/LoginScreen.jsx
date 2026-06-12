@@ -93,7 +93,7 @@ export function LoginScreen({ navigation }) {
 
     const googleModule = loadNativeGoogleSignin();
     if (!googleModule?.GoogleSignin) {
-      setError('Login com Google nativo precisa de uma development build. Ele nao roda dentro do Expo Go.');
+      setError('Login com Google nativo precisa de uma development build. Ele não roda dentro do Expo Go.');
       return;
     }
 
@@ -130,7 +130,7 @@ export function LoginScreen({ navigation }) {
       }
 
       if (!idToken) {
-        setError('O Google nao retornou um idToken. Confira se o WEB Client ID esta correto.');
+        setError('O Google não retornou um idToken. Confira se o WEB Client ID está correto.');
         setGoogleLoading(false);
         return;
       }
@@ -152,7 +152,7 @@ export function LoginScreen({ navigation }) {
         }
 
         if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-          setError('Google Play Services indisponivel ou desatualizado neste aparelho.');
+          setError('Google Play Services indisponível ou desatualizado neste aparelho.');
           setGoogleLoading(false);
           return;
         }
@@ -167,7 +167,7 @@ export function LoginScreen({ navigation }) {
         setError(readableApiMessage);
       } else if (err.message === 'Network Error') {
         setError(
-          `Nao consegui acessar o backend em ${api.defaults.baseURL}. Confirme se a API esta rodando e se o celular esta na mesma rede.`
+          `Não consegui acessar o backend em ${api.defaults.baseURL}. Confirme se a API está rodando e se o celular está na mesma rede.`
         );
       } else if (
         String(err.code || '').includes('DEVELOPER_ERROR') ||
@@ -180,7 +180,7 @@ export function LoginScreen({ navigation }) {
       } else if (err.code) {
         setError(`Erro Google (${err.code}): ${err.message || 'falha ao autenticar.'}`);
       } else {
-        setError(err.message || 'Nao foi possivel entrar com Google.');
+        setError(err.message || 'Não foi possível entrar com o Google.');
       }
       setGoogleLoading(false);
     }
@@ -193,19 +193,19 @@ export function LoginScreen({ navigation }) {
     const normalizedUsername = username.trim().replace(/^@/, '').toLowerCase();
 
     if (!isValidEmail(normalizedEmail)) {
-      setError('Por favor, insira um email valido.');
+      setError('Por favor, insira um e-mail válido.');
       return;
     }
 
     if (isForgotPassword) {
       if (resetRequested) {
         if (!resetCode.trim()) {
-          setError('Informe o codigo recebido.');
+          setError('Informe o código recebido.');
           return;
         }
 
         if (!newPassword || newPassword.length < 6) {
-          setError('Nova senha deve ter no minimo 6 caracteres.');
+          setError('A nova senha deve ter, no mínimo, 6 caracteres.');
           return;
         }
       }
@@ -231,11 +231,11 @@ export function LoginScreen({ navigation }) {
           });
 
           const codeMessage = response.data?.resetCode
-            ? ` Codigo: ${response.data.resetCode}`
+            ? ` Código: ${response.data.resetCode}`
             : '';
 
           setSuccess(
-            `${response.data?.message || 'Se esse email estiver cadastrado, enviaremos as instrucoes.'}${codeMessage}`
+            `${response.data?.message || 'Se esse e-mail estiver cadastrado, enviaremos as instruções.'}${codeMessage}`
           );
           setResetRequested(true);
         }
@@ -249,12 +249,12 @@ export function LoginScreen({ navigation }) {
     }
 
     if (!password || password.length < 6) {
-      setError('Senha deve ter no minimo 6 caracteres.');
+      setError('A senha deve ter, no mínimo, 6 caracteres.');
       return;
     }
 
     if (isRegister && (!name.trim() || !normalizedUsername)) {
-      setError('Nome e username sao obrigatorios.');
+      setError('Nome e nome de usuário são obrigatórios.');
       return;
     }
 
@@ -278,7 +278,7 @@ export function LoginScreen({ navigation }) {
       if (isLogin) {
         await completeLogin(response.data);
       } else {
-        setSuccess('Cadastro realizado! Faca o login.');
+        setSuccess('Cadastro realizado! Faça login.');
         setAuthMode('login');
         setPassword('');
       }
@@ -299,10 +299,10 @@ export function LoginScreen({ navigation }) {
         setError(readableApiMessage);
       } else if (err.message === 'Network Error') {
         setError(
-          `Nao consegui acessar o backend em ${api.defaults.baseURL}. Confirme se a API esta rodando e se o celular esta na mesma rede.`
+          `Não consegui acessar o backend em ${api.defaults.baseURL}. Confirme se a API está rodando e se o celular está na mesma rede.`
         );
       } else {
-        setError(err.message || 'Erro ao processar a requisicao.');
+        setError(err.message || 'Erro ao processar a requisição.');
       }
     } finally {
       setLoading(false);
@@ -326,8 +326,8 @@ export function LoginScreen({ navigation }) {
           {isForgotPassword && (
             <Text style={styles.helperText}>
               {resetRequested
-                ? 'Digite o codigo recebido e escolha uma nova senha.'
-                : 'Informe seu email para receber as instrucoes.'}
+                ? 'Digite o código recebido e escolha uma nova senha.'
+                : 'Informe seu e-mail para receber as instruções.'}
             </Text>
           )}
 
@@ -346,7 +346,7 @@ export function LoginScreen({ navigation }) {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Username</Text>
+                <Text style={styles.label}>Nome de usuário</Text>
                 <View style={styles.inputWithIconWrapper}>
                   <View style={styles.inputIconBox}>
                     <Text style={styles.inputIcon}>@</Text>
@@ -366,7 +366,7 @@ export function LoginScreen({ navigation }) {
           )}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>E-mail</Text>
             <TextInput
               style={styles.input}
               value={email}
@@ -411,7 +411,7 @@ export function LoginScreen({ navigation }) {
           {isForgotPassword && resetRequested && (
             <>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Codigo</Text>
+                <Text style={styles.label}>Código</Text>
                 <TextInput
                   style={styles.input}
                   value={resetCode}
@@ -464,7 +464,7 @@ export function LoginScreen({ navigation }) {
                 {isForgotPassword
                   ? resetRequested
                     ? 'Redefinir senha'
-                    : 'Enviar instrucoes'
+                    : 'Enviar instruções'
                   : isLogin
                     ? 'Entrar'
                     : 'Cadastrar'}
@@ -516,7 +516,7 @@ export function LoginScreen({ navigation }) {
               disabled={loading}
             >
               <Text style={styles.toggleButton}>
-                {isLogin ? 'Nao tem uma conta? Cadastre-se' : 'Ja tem uma conta? Entrar'}
+                {isLogin ? 'Não tem uma conta? Cadastre-se.' : 'Já tem uma conta? Entrar.'}
               </Text>
             </TouchableOpacity>
           )}

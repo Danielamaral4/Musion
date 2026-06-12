@@ -19,6 +19,14 @@ export class SpotifyService {
   private openai?: OpenAI;
   private gemini?: GoogleGenAI;
   private lensUsage = new Map<number, { date: string; count: number }>();
+  private spotifyCooldownUntil = 0;
+  private albumDetailsCache = new Map<string, { expiresAt: number; data: any }>();
+  private searchCache = new Map<string, { expiresAt: number; data: any[] }>();
+  private artistProfileCache = new Map<string, { expiresAt: number; data: any }>();
+  private artistGenresCache = new Map<string, { expiresAt: number; data: string[] }>();
+  private artistAlbumsCache = new Map<string, { expiresAt: number; data: any[] }>();
+  private relatedArtistsCache = new Map<string, { expiresAt: number; data: any[] }>();
+  private newReleasesCache = new Map<string, { expiresAt: number; data: any[] }>();
 
   constructor(
     private readonly httpService: HttpService,
@@ -120,6 +128,86 @@ export class SpotifyService {
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
+  }
+
+  private sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private getCache<T>(cache: Map<string, { expiresAt: number; data: T }>, key: string): T | null {
+    const current = cache.get(key);
+    if (!current) return null;
+
+    if (Date.now() > current.expiresAt) {
+      cache.delete(key);
+      return null;
+    }
+
+    return current.data;
+  }
+
+  private setCache<T>(
+    cache: Map<string, { expiresAt: number; data: T }>,
+    key: string,
+    data: T,
+    ttlMs = 15 * 60 * 1000,
+  ) {
+    cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+  }
+
+  private getRetryAfterMs(error: any) {
+    const header = error?.response?.headers?.['retry-after'];
+    const seconds = Number(Array.isArray(header) ? header[0] : header);
+    return Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds * 1000, 5000) : 1200;
+  }
+
+  private async spotifyGet(url: string, token: string, config: any = {}): Promise<any> {
+    const cooldown = this.spotifyCooldownUntil - Date.now();
+    if (cooldown > 0) {
+      await this.sleep(Math.min(cooldown, 2000));
+    }
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await firstValueFrom(
+          this.httpService.get(url, {
+            ...config,
+            headers: {
+              ...(config.headers || {}),
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        );
+
+        return response.data;
+      } catch (error) {
+        if (error?.response?.status === 429 && attempt === 0) {
+          const retryAfter = this.getRetryAfterMs(error);
+          this.spotifyCooldownUntil = Date.now() + retryAfter;
+          this.logger.warn(`Spotify 429. Aguardando ${retryAfter}ms antes de tentar novamente.`);
+          await this.sleep(retryAfter);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+  }
+
+  private async mapWithConcurrency<T, R>(
+    items: T[],
+    limit: number,
+    mapper: (item: T, index: number) => Promise<R>,
+  ): Promise<R[]> {
+    const results: R[] = [];
+
+    for (let index = 0; index < items.length; index += limit) {
+      const chunk = items.slice(index, index + limit);
+      const mapped = await Promise.all(chunk.map((item, chunkIndex) => mapper(item, index + chunkIndex)));
+      results.push(...mapped);
+    }
+
+    return results;
   }
 
   private scoreAlbumCandidate(album: any, albumTitle: string, artistName: string) {
@@ -611,16 +699,20 @@ export class SpotifyService {
   // 2. BUSCAR ÁLBUNS
   // ============================================================
   async searchAlbums(query: string) {
+    const cleanQuery = String(query || '').trim();
+    const cacheKey = `search:${cleanQuery.toLowerCase()}`;
+    const cached = this.getCache(this.searchCache, cacheKey);
+    if (cached) return cached;
+
     const token = await this.getSpotifyToken();
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${SPOTIFY_API_URL}/search`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { q: query, type: 'album', limit: 30, market: 'BR' },
-        }),
-      );
-      return response.data.albums.items;
+      const data = await this.spotifyGet(`${SPOTIFY_API_URL}/search`, token, {
+        params: { q: cleanQuery, type: 'album', limit: 30, market: 'BR' },
+      });
+      const albums = data.albums?.items || [];
+      this.setCache(this.searchCache, cacheKey, albums);
+      return albums;
     } catch (error) {
       this.logger.error(`Erro ao buscar álbuns: ${error.message}`);
       return [];
@@ -708,43 +800,126 @@ export class SpotifyService {
   }
 
   async searchAlbumsByArtistName(artistName: string, limit = 12) {
+    const cacheKey = `artist-search:${artistName.toLowerCase()}:${limit}`;
+    const cached = this.getCache(this.searchCache, cacheKey);
+    if (cached) return cached;
+
     const token = await this.getSpotifyToken();
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${SPOTIFY_API_URL}/search`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            q: `artist:"${artistName}"`,
-            type: 'album',
-            limit,
-            market: 'BR',
-          },
-        }),
-      );
+      const data = await this.spotifyGet(`${SPOTIFY_API_URL}/search`, token, {
+        params: {
+          q: `artist:"${artistName}"`,
+          type: 'album',
+          limit,
+          market: 'BR',
+        },
+      });
 
-      return response.data.albums?.items || [];
+      const albums = data.albums?.items || [];
+      this.setCache(this.searchCache, cacheKey, albums);
+      return albums;
     } catch (error) {
       this.logger.error(`Erro ao buscar albuns do artista "${artistName}": ${error.message}`);
       return [];
     }
   }
 
+  private async getArtistProfile(artistId: string, token: string) {
+    const cached = this.getCache(this.artistProfileCache, artistId);
+    if (cached) return cached;
+
+    try {
+      const artist = await this.spotifyGet(`${SPOTIFY_API_URL}/artists/${artistId}`, token);
+      this.setCache(this.artistProfileCache, artistId, artist);
+      return artist;
+    } catch {
+      return null;
+    }
+  }
+
   async getNewReleases(limit = 20) {
+    const cacheKey = `new-releases:${limit}`;
+    const cached = this.getCache(this.newReleasesCache, cacheKey);
+    if (cached) return cached;
+
     const token = await this.getSpotifyToken();
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${SPOTIFY_API_URL}/browse/new-releases`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            country: 'BR',
-            limit,
-          },
-        }),
+      const response = await this.spotifyGet(`${SPOTIFY_API_URL}/browse/new-releases`, token, {
+        params: {
+          country: 'BR',
+          limit: 50,
+        },
+      });
+
+      const releases: any[] = response.albums?.items || [];
+      const albumsOnly: any[] = releases
+        .filter((album) => album?.album_type === 'album')
+        .filter((album) => Number(album?.total_tracks || 0) >= 5)
+        .slice(0, 18);
+
+      const detailedAlbums = await this.mapWithConcurrency(
+        albumsOnly,
+        3,
+        async (album) => {
+          try {
+            const detail = await this.getAlbumDetails(album.id);
+            const mainArtistId = detail?.artists?.[0]?.id || album.artists?.[0]?.id;
+            const artist = mainArtistId ? await this.getArtistProfile(mainArtistId, token) : null;
+
+            return {
+              ...album,
+              popularity: detail?.popularity || 0,
+              artistPopularity: artist?.popularity || 0,
+              artistFollowers: artist?.followers?.total || 0,
+              total_tracks: detail?.total_tracks || album.total_tracks,
+              images: detail?.images || album.images,
+              artists: detail?.artists || album.artists,
+            };
+          } catch {
+            return { ...album, popularity: 0, artistPopularity: 0, artistFollowers: 0 };
+          }
+        },
       );
 
-      return response.data.albums?.items || [];
+      const knownReleases = detailedAlbums.filter((album) => {
+        const artistName = album.artists?.[0]?.name?.toLowerCase?.() || '';
+        const isCompilation = artistName.includes('various artists') || artistName.includes('vários artistas');
+
+        return !isCompilation && (
+          (album.artistPopularity || 0) >= 55 ||
+          (album.artistFollowers || 0) >= 250000 ||
+          (album.popularity || 0) >= 45
+        );
+      });
+
+      const rankedPool = knownReleases.length >= Math.min(limit, 5)
+        ? knownReleases
+        : detailedAlbums;
+
+      const ranked = rankedPool
+        .sort((a, b) => {
+          const score = (album: any) => {
+            const artistFollowersScore = Math.min(Math.log10((album.artistFollowers || 0) + 1) * 9, 70);
+            const trackBonus = Math.min(Number(album.total_tracks || 0), 14);
+
+            return (
+              (album.artistPopularity || 0) * 3 +
+              (album.popularity || 0) * 2 +
+              artistFollowersScore +
+              trackBonus
+            );
+          };
+
+          const scoreDiff = score(b) - score(a);
+          if (scoreDiff !== 0) return scoreDiff;
+          return String(b.release_date || '').localeCompare(String(a.release_date || ''));
+        })
+        .slice(0, limit);
+
+      this.setCache(this.newReleasesCache, cacheKey, ranked, 10 * 60 * 1000);
+      return ranked;
     } catch (error) {
       this.logger.error(`Erro ao buscar lancamentos da semana: ${error.message}`);
       return [];
@@ -906,18 +1081,19 @@ export class SpotifyService {
   }
 
   async getAlbumDetails(albumId: string) {
-    const token = await this.getSpotifyToken();
     const cleanId = albumId.replace('spotify:album:', '');
+    const cached = this.getCache(this.albumDetailsCache, cleanId);
+    if (cached) return cached;
+
+    const token = await this.getSpotifyToken();
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${SPOTIFY_API_URL}/albums/${cleanId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { market: 'BR' },
-        }),
-      );
+      const album = await this.spotifyGet(`${SPOTIFY_API_URL}/albums/${cleanId}`, token, {
+        params: { market: 'BR' },
+      });
 
-      return response.data;
+      this.setCache(this.albumDetailsCache, cleanId, album);
+      return album;
     } catch (error) {
       this.logger.error(`Erro ao buscar detalhes do álbum ${cleanId}: ${error.message}`);
       return null;
@@ -928,15 +1104,16 @@ export class SpotifyService {
   // 4. PEGAR GÊNEROS DE UM ARTISTA
   // ============================================================
   async getArtistGenres(artistId: string): Promise<string[]> {
+    const cached = this.getCache(this.artistGenresCache, artistId);
+    if (cached) return cached;
+
     const token = await this.getSpotifyToken();
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${SPOTIFY_API_URL}/artists/${artistId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      );
-      return response.data.genres || [];
+      const artist = await this.spotifyGet(`${SPOTIFY_API_URL}/artists/${artistId}`, token);
+      const genres = artist.genres || [];
+      this.setCache(this.artistGenresCache, artistId, genres);
+      return genres;
     } catch (error) {
       this.logger.error(`Erro ao buscar gêneros do artista ${artistId}: ${error.message}`);
       return [];
@@ -947,22 +1124,25 @@ export class SpotifyService {
   // 5. BUSCAR ÁLBUNS POR GÊNERO
   // ============================================================
   async searchAlbumsByGenre(genre: string) {
+    const cacheKey = `genre:${genre.toLowerCase()}`;
+    const cached = this.getCache(this.searchCache, cacheKey);
+    if (cached) return cached;
+
     const token = await this.getSpotifyToken();
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${SPOTIFY_API_URL}/search`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            q: `genre:"${genre}"`,
-            type: 'album',
-            limit: 30,
-            market: 'BR',
-          },
-        }),
-      );
+      const data = await this.spotifyGet(`${SPOTIFY_API_URL}/search`, token, {
+        params: {
+          q: `genre:"${genre}"`,
+          type: 'album',
+          limit: 30,
+          market: 'BR',
+        },
+      });
 
-      return response.data.albums?.items || [];
+      const albums = data.albums?.items || [];
+      this.setCache(this.searchCache, cacheKey, albums);
+      return albums;
     } catch (error) {
       this.logger.error(`Erro ao buscar álbuns por gênero "${genre}": ${error.message}`);
       return [];
@@ -973,21 +1153,23 @@ export class SpotifyService {
   // 6. NOVO — PEGAR ÁLBUNS DE UM ARTISTA
   // ============================================================
   async getArtistAlbums(artistId: string) {
+    const cached = this.getCache(this.artistAlbumsCache, artistId);
+    if (cached) return cached;
+
     const token = await this.getSpotifyToken();
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${SPOTIFY_API_URL}/artists/${artistId}/albums`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            include_groups: 'album',
-            market: 'BR',
-            limit: 20,
-          },
-        }),
-      );
+      const data = await this.spotifyGet(`${SPOTIFY_API_URL}/artists/${artistId}/albums`, token, {
+        params: {
+          include_groups: 'album',
+          market: 'BR',
+          limit: 20,
+        },
+      });
 
-      return response.data.items || [];
+      const albums = data.items || [];
+      this.setCache(this.artistAlbumsCache, artistId, albums);
+      return albums;
     } catch (error) {
       this.logger.error(`Erro ao buscar álbuns do artista ${artistId}: ${error.message}`);
       return [];
@@ -998,16 +1180,17 @@ export class SpotifyService {
   // 7. NOVO — PEGAR ARTISTAS RELACIONADOS
   // ============================================================
   async getRelatedArtists(artistId: string) {
+  const cached = this.getCache(this.relatedArtistsCache, artistId);
+  if (cached) return cached;
+
   const token = await this.getSpotifyToken();
 
   try {
-    const response = await firstValueFrom(
-      this.httpService.get(`${SPOTIFY_API_URL}/artists/${artistId}/related-artists`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-    );
+    const data = await this.spotifyGet(`${SPOTIFY_API_URL}/artists/${artistId}/related-artists`, token);
 
-    return response.data.artists || [];
+    const artists = data.artists || [];
+    this.setCache(this.relatedArtistsCache, artistId, artists);
+    return artists;
   } catch (error) {
 
     // 🔥 Spotify retorna 404 para alguns artistas — isso é normal

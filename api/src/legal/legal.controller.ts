@@ -8,13 +8,12 @@ import {
   Patch,
   Post,
   Query,
-  Request,
-  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from '../auth/admin.guard';
 import { CreateDataDeletionRequestDto } from '../dto/create-data-deletion-request.dto';
 import { LegalService } from './legal.service';
 import {
@@ -54,32 +53,18 @@ export class LegalController {
     return deletionSuccessPage();
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('admin/delete-account-requests')
-  listDataDeletionRequests(@Request() req, @Query('status') status = 'PENDING') {
-    this.assertAdmin(req.user.id);
+  listDataDeletionRequests(@Query('status') status = 'PENDING') {
     return this.legalService.listDataDeletionRequests(status);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Patch('admin/delete-account-requests/:id/status')
   updateDataDeletionRequestStatus(
-    @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Body('status') status: string
   ) {
-    this.assertAdmin(req.user.id);
     return this.legalService.updateDataDeletionRequestStatus(id, status);
-  }
-
-  private assertAdmin(userId: number) {
-    const adminIds = String(process.env.MODERATION_ADMIN_USER_IDS || '')
-      .split(',')
-      .map((id) => Number(id.trim()))
-      .filter((id) => Number.isFinite(id));
-
-    if (!adminIds.includes(userId)) {
-      throw new UnauthorizedException('Acesso restrito a administradores.');
-    }
   }
 }

@@ -210,6 +210,57 @@ export class SpotifyService {
     return results;
   }
 
+  private parseSpotifyReleaseDate(album: any) {
+    const rawDate = String(album?.release_date || '').trim();
+    if (!rawDate) return null;
+
+    const precision =
+      album?.release_date_precision ||
+      (rawDate.length === 4 ? 'year' : rawDate.length === 7 ? 'month' : 'day');
+
+    if (precision === 'year') return null;
+
+    const [yearText, monthText = '1', dayText = '1'] = rawDate.split('-');
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = precision === 'month' ? 1 : Number(dayText);
+
+    if (!year || !month || !day) return null;
+
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private getReleaseAgeInDays(album: any) {
+    const releaseDate = this.parseSpotifyReleaseDate(album);
+    if (!releaseDate) return null;
+
+    const now = new Date();
+    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const release = Date.UTC(
+      releaseDate.getUTCFullYear(),
+      releaseDate.getUTCMonth(),
+      releaseDate.getUTCDate(),
+    );
+
+    return Math.floor((today - release) / (24 * 60 * 60 * 1000));
+  }
+
+  private isRecentRelease(album: any, maxAgeDays = 28) {
+    const age = this.getReleaseAgeInDays(album);
+    return age !== null && age >= -1 && age <= maxAgeDays;
+  }
+
+  private dedupeAlbumsById(albums: any[]) {
+    const seen = new Set<string>();
+
+    return albums.filter((album) => {
+      if (!album?.id || seen.has(album.id)) return false;
+      seen.add(album.id);
+      return true;
+    });
+  }
+
   private scoreAlbumCandidate(album: any, albumTitle: string, artistName: string) {
     const expectedAlbum = this.normalizeText(albumTitle);
     const expectedArtist = this.normalizeText(artistName);
@@ -846,6 +897,7 @@ export class SpotifyService {
     const token = await this.getSpotifyToken();
 
     try {
+      const currentYear = new Date().getUTCFullYear();
       const response = await this.spotifyGet(`${SPOTIFY_API_URL}/browse/new-releases`, token, {
         params: {
           country: 'BR',
@@ -853,11 +905,32 @@ export class SpotifyService {
         },
       });
 
-      const releases: any[] = response.albums?.items || [];
-      const albumsOnly: any[] = releases
+      const searchQueries = [`tag:new`, `year:${currentYear}`];
+      const searchResponses = await this.mapWithConcurrency(searchQueries, 1, async (query) => {
+        try {
+          return await this.spotifyGet(`${SPOTIFY_API_URL}/search`, token, {
+            params: {
+              q: query,
+              type: 'album',
+              market: 'BR',
+              limit: 50,
+            },
+          });
+        } catch {
+          return null;
+        }
+      });
+
+      const releases: any[] = [
+        ...(response.albums?.items || []),
+        ...searchResponses.flatMap((searchResponse) => searchResponse?.albums?.items || []),
+      ];
+
+      const albumsOnly: any[] = this.dedupeAlbumsById(releases)
         .filter((album) => album?.album_type === 'album')
         .filter((album) => Number(album?.total_tracks || 0) >= 5)
-        .slice(0, 18);
+        .filter((album) => this.isRecentRelease(album))
+        .slice(0, 24);
 
       const detailedAlbums = await this.mapWithConcurrency(
         albumsOnly,
@@ -883,7 +956,9 @@ export class SpotifyService {
         },
       );
 
-      const knownReleases = detailedAlbums.filter((album) => {
+      const recentDetailedAlbums = detailedAlbums.filter((album) => this.isRecentRelease(album));
+
+      const knownReleases = recentDetailedAlbums.filter((album) => {
         const artistName = album.artists?.[0]?.name?.toLowerCase?.() || '';
         const isCompilation = artistName.includes('various artists') || artistName.includes('vários artistas');
 
@@ -896,19 +971,22 @@ export class SpotifyService {
 
       const rankedPool = knownReleases.length >= Math.min(limit, 5)
         ? knownReleases
-        : detailedAlbums;
+        : recentDetailedAlbums;
 
       const ranked = rankedPool
         .sort((a, b) => {
           const score = (album: any) => {
             const artistFollowersScore = Math.min(Math.log10((album.artistFollowers || 0) + 1) * 9, 70);
             const trackBonus = Math.min(Number(album.total_tracks || 0), 14);
+            const releaseAge = this.getReleaseAgeInDays(album) ?? 28;
+            const recencyBonus = Math.max(28 - releaseAge, 0) * 2;
 
             return (
               (album.artistPopularity || 0) * 3 +
               (album.popularity || 0) * 2 +
               artistFollowersScore +
-              trackBonus
+              trackBonus +
+              recencyBonus
             );
           };
 
